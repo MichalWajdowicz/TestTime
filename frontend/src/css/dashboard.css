@@ -1,0 +1,13 @@
+.site-footer {
+    /* Ustaw stopkę na dole strony */
+    height: 100px; /* Przykładowa wysokość stopki */
+    background: #333; /* Przykładowy kolor tła */
+    color: #fff; /* Przykładowy kolor tekstu */
+    position: fixed;
+    clear: both;
+    left: 0;
+    bottom: 0;
+} 
+.side {
+    min-height: calc(100vh - 157px);
+} 
