@@ -29,9 +29,8 @@ function LoginForm(props: any) {
           tokenType: "Bearer",
           authState: { values: values.username },
           refreshToken: response.data.refresh,                    
-          refreshTokenExpireIn: 89 * 24 * 60     
+          refreshTokenExpireIn: 89 * 24 * 60    
         });
-
         navigate("/"); // Navigate to the home page after the user has successfully logged in.
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {

@@ -3,8 +3,8 @@ import LoginForm from './LoginForm';
 import { useNavigate } from "react-router-dom";
 import {useIsAuthenticated} from 'react-auth-kit';
 import { useSignOut } from 'react-auth-kit'
+import { Link, Outlet } from "react-router-dom";
 
-//import Modal from 'react-modal'; // Importujemy React Modal
 
 const NavMain = () => {
   const signOut = useSignOut()
@@ -29,7 +29,13 @@ const NavMain = () => {
         </button>
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
-            <li className="nav-item"><a className="nav-link" href="/Dashboard">Dashboard</a></li>
+          {(() => {
+                if (isAuthenticated()) {
+                  return (
+                    <li className="nav-item"><Link to="/dashboard" className="nav-link"> Dashboard </Link></li>
+                  )
+                } 
+              })()}
             <li className="nav-item"><a className="nav-link" href="about.html">About</a></li>
             <li className="nav-item"><a className="nav-link" href="contact.html">Contact</a></li>
             <li className="nav-item"><a className="nav-link" href="pricing.html">Pricing</a></li>

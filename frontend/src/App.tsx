@@ -22,7 +22,9 @@ function App() {
                   )
                 } else {
                   return (
-                    <Route path="/login" element={<LoginForm/>}></Route>
+                    <Route path="/login" element={<LoginForm/>}>
+                      
+                    </Route>
                   )
                 }
               })()}
@@ -30,13 +32,15 @@ function App() {
                 <RequireAuth loginPath={'/login'}>
                   <Dashboard/>
                 </RequireAuth> }
-              />
+              >
+                <Route path="quizAdd" element={<QuizAdd/>}></Route>
+              </Route>
 
-              <Route path={'/quizAdd'} element={
+              {/* <Route path={'/quizAdd'} element={
               <RequireAuth loginPath={'/login'}>
                 <QuizAdd/>
               </RequireAuth> }
-              />
+              /> */}
 
         <Route path="/register" element={<Register/>}></Route>
         {/* <Route path="/dashboard" element={<Dashboard/>}></Route> */}

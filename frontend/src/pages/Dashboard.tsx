@@ -12,7 +12,7 @@ import type { MenuProps } from 'antd';
 import { Breadcrumb, Layout, Menu, theme } from 'antd';
 import { Button, Flex } from 'antd';
 //import Link  from 'antd/es/typography/Link';
-import { Link } from 'react-router-dom';
+import { Link,Outlet } from 'react-router-dom';
 const { Header, Content, Footer, Sider } = Layout;
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -31,9 +31,11 @@ function getItem(
 }
 
 const items: MenuItem[] = [
-  getItem('Profil', '1', <PieChartOutlined />),
+  getItem(<Link to=""> Profil </Link>,'profil',<DesktopOutlined />),
+  // getItem('Stwórz wlasny quiz',"add",<DesktopOutlined />),
   getItem('Quizy',2,<PieChartOutlined />),
-  getItem('Stwórz wlasny quiz',"add",<DesktopOutlined />),
+  getItem(<Link to="quizAdd"> Stwórz wlasny quiz </Link>,'add',<DesktopOutlined />),
+  // getItem('Stwórz wlasny quiz',"add",<DesktopOutlined />),
   getItem('Historia', '4', <FileOutlined />),
 ];
 
@@ -60,7 +62,7 @@ const Dashboard: React.FC = () => {
       case '2':
         return <div>Quizy Content</div>;
       case 'add':
-        return <QuizAdd/>;
+        return <Link to="/addQuiz"> Add quiz </Link>;
       case '4':
         return <div>Historia Content</div>;
       default:
@@ -91,7 +93,10 @@ const Dashboard: React.FC = () => {
       <Layout>
         <Header style={{ padding: 0, background: colorBgContainer }} />
         <Content style={{ margin: '24px 16px 0' }}>
-          <div className = "side"style={{ padding: 24, background: colorBgContainer }}>{getContentForSelectedKey()}</div>
+          {/* <div className = "side"style={{ padding: 24, background: colorBgContainer }}>{getContentForSelectedKey()}</div> */}
+          <div className = "side"style={{ padding: 24, background: colorBgContainer }}>
+            <Outlet/>
+          </div>
         </Content>
         <Footer style={{ textAlign: 'center' }}>Ant Design ©2023 Created by Ant UED</Footer>
       </Layout>

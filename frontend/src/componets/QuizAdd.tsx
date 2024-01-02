@@ -1,26 +1,32 @@
 import React from 'react';
 import { CloseOutlined } from '@ant-design/icons';
-import { Button, Card, Form, Input, Space, Typography } from 'antd';
+import { Button, Card, Form, Input, Space, Typography, Select } from 'antd';
+import { Checkbox } from 'antd';
+import {useAuthUser} from 'react-auth-kit'
+import axios, { AxiosError, AxiosResponse } from "axios";
+
+const { Option } = Select;
 
 const App: React.FC = () => {
   const [form] = Form.useForm();
+  type Answer = { 
+    answer: string;
+    goodAnswer: boolean;
+  };
   type Question = {
     name: string;
-    answer1: string;
-    goodAnswer1: boolean;
-    answer2: string;
-    goodAnswer2: boolean;
-    answer3?: string| null;
-    goodAnswer3?: boolean | null;
-    answer4?: string | null;
-    goodAnswer4?: boolean | null;
-    answer5?: string | null;
-    goodAnswer5?: boolean | null;
-    answer6?: string | null;
-    goodAnswer6?: boolean | null;
-    
+    answers: Answer[];
   };
-
+  type Categories = { 
+    name: string;
+  };
+  type Quiz = {
+    name: string;
+    user: string;
+    quizCategories: Categories[];
+    questions: Question[];
+  };
+  const authUser = useAuthUser();
   const tailFormItemLayout = {
     wrapperCol: {
       xs: {
@@ -35,39 +41,59 @@ const App: React.FC = () => {
   };
 
   let question: Question;
+  
   const onFinish = async (values: any) => {
     let questions: Question[] = [];
+    let answers: Answer[] = [];
+    let answer: Answer;
+    let quiz: Quiz;
     //kategorie dodac
     for (let i = 0; i < values.items.length; i++) {
+      for (let j = 0; j < values.items[i].Answer.length; j++) {
+        if (values.items[i].Answer[j].goodAnswer === undefined) {
+          values.items[i].Answer[j].goodAnswer = false;
+        }
+        answer = {
+          answer: values.items[i].Answer[j].Answer,
+          goodAnswer: values.items[i].Answer[j].goodAnswer,
+        };
+        answers.push(answer);
+      }
       question = {
         name: values.items[i].qustion,
-        answer1: values.items[i].Answer[0].Answer,
-        goodAnswer1: values.items[i].Answer[0].goodAnswer,
-        answer2: values.items[i].Answer[1].Answer,
-        goodAnswer2: values.items[i].Answer[1].goodAnswer,
-        answer3: values.items[i].Answer[2]?.Answer || null,
-        goodAnswer3: values.items[i].Answer[2]?.goodAnswer || null,
-        answer4: values.items[i].Answer[3]?.Answer || null,
-        goodAnswer4: values.items[i].Answer[3]?.goodAnswer || null,
-        answer5: values.items[i].Answer[4]?.Answer || null,
-        goodAnswer5: values.items[i].Answer[4]?.goodAnswer || null,
-        answer6: values.items[i].Answer[5]?.Answer || null,
-        goodAnswer6: values.items[i].Answer[5]?.goodAnswer || null,
+        answers: answers,
 
       };
+      answers = [];
       questions.push(question);
     }
-    console.log(questions);
+    let categories: Categories[] = [];
+    for (let i = 0; i < values.categorys.length; i++) {
+      let category: Categories = {
+        name: values.categorys[i],
+      };
+      categories.push(category);
+    } 
+    
+    quiz = {
+      name: values.name,
+      user: authUser()?.values,
+      questions: questions,
+      quizCategories: categories,
+    };
+    console.log();
+    console.log(JSON.stringify(quiz, null, 2));
 
-    // try {
-    //     const response = await axios.post(
-    //       "http://localhost:8000/api/register/",
-    //       register
-    //     );
-    //     console.log(response);
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
+
+    try {
+        const response = await axios.post(
+          "http://localhost:8000/quiz/addQuiz/",
+          quiz
+        );
+        console.log(response);
+      } catch (error) {
+        console.error(error);
+      }
   };
   return (
     <Form
@@ -80,6 +106,23 @@ const App: React.FC = () => {
       autoComplete="off"
       initialValues={{ items: [{}] }}
     >
+      <Form.Item label="Nazwa Quizu" name="name">
+        <Input />
+      </Form.Item>
+      <Form.Item label="Kategoria" name="category">
+        <Input />
+      </Form.Item>
+      <Form.Item
+      name="categorys"
+      label="Select[multiple]"
+      rules={[{ required: true, message: 'Please select your favourite colors!', type: 'array' }]}
+    >
+      <Select mode="multiple" placeholder="Please select favourite colors">
+        <Option value="red">Red</Option>
+        <Option value="green">Green</Option>
+        <Option value="blue">Blue</Option>
+      </Select>
+    </Form.Item>
       <Form.List name="items">
         {(fields, { add, remove }) => (
           <div style={{ display: 'flex', rowGap: 16, flexDirection: 'column' }}>
@@ -110,6 +153,9 @@ const App: React.FC = () => {
                             <Form.Item noStyle name={[subField.name, 'Answer']}>
                               <Input placeholder="Answer" />
                             </Form.Item>
+                            <Form.Item  noStyle name={[subField.name, 'goodAnswer']} valuePropName="checked">
+                              <Checkbox>Prawidłowa odpowiedź</Checkbox>
+                            </Form.Item>
                             <CloseOutlined
                               onClick={() => {
                                 subOpt.remove(subField.name);
@@ -137,17 +183,17 @@ const App: React.FC = () => {
         )}
       </Form.List>
 
-      {/* <Form.Item noStyle shouldUpdate>
+      <Form.Item noStyle shouldUpdate>
         {() => (
           <Typography>
             <pre>{JSON.stringify(form.getFieldsValue(), null, 2)}</pre>
             
           </Typography>
         )}
-      </Form.Item> */}
+      </Form.Item>
       <Form.Item {...tailFormItemLayout}>
         <Button type="primary" htmlType="submit" >
-          Register
+          Add Quiz
         </Button>
       </Form.Item>
     </Form>

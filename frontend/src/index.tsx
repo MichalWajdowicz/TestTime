@@ -7,9 +7,11 @@ import { BrowserRouter } from "react-router-dom";
 import refreshApi from './context/refreshApi';
 
 
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+
 root.render(
  
   <React.StrictMode>
@@ -17,8 +19,9 @@ root.render(
           authType={"cookie"}
           authName={"_auth"}
           cookieDomain={window.location.hostname}
-          cookieSecure={true}
+          cookieSecure={window.location.protocol === "https:"}
           refresh={refreshApi}
+          
         >
     <BrowserRouter>
         <App />

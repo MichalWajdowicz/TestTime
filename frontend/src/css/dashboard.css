@@ -11,3 +11,6 @@
 .side {
     min-height: calc(100vh - 157px);
 } 
+a {
+    text-decoration: none;
+}
