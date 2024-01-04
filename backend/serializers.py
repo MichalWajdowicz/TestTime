@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from .models import Quizs, Questions, Answers, Categories
 from django.contrib.auth.models import User
 
@@ -26,7 +27,7 @@ class QuizsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Quizs
-        fields = ['user', 'name', 'questions', 'quizCategories']
+        fields = ['user', 'name', 'questions', 'quizCategories', 'description']
 
     def create(self, validated_data):
         username = validated_data.pop('user')['username']  # Extract the username from the input data
@@ -50,3 +51,15 @@ class QuizsSerializer(serializers.ModelSerializer):
             quiz.quizCategories.add(category)
 
         return quiz
+
+class QuizsSerializerList(serializers.ModelSerializer):
+    user = serializers.CharField(source='user.username')
+    quizCategories = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Quizs
+        fields = ['user', 'name', 'quizCategories', 'description']
+
+    def get_quizCategories(self, obj):
+        # Retrieve the category names and join them into a comma-separated string
+        return ", ".join(category.name for category in obj.quizCategories.all())

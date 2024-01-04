@@ -4,7 +4,7 @@ import { Button, Card, Form, Input, Space, Typography, Select } from 'antd';
 import { Checkbox } from 'antd';
 import {useAuthUser} from 'react-auth-kit'
 import axios, { AxiosError, AxiosResponse } from "axios";
-
+const { TextArea } = Input;
 const { Option } = Select;
 
 const App: React.FC = () => {
@@ -23,6 +23,7 @@ const App: React.FC = () => {
   type Quiz = {
     name: string;
     user: string;
+    description: string;
     quizCategories: Categories[];
     questions: Question[];
   };
@@ -77,6 +78,7 @@ const App: React.FC = () => {
     
     quiz = {
       name: values.name,
+      description: values.description,
       user: authUser()?.values,
       questions: questions,
       quizCategories: categories,
@@ -109,8 +111,8 @@ const App: React.FC = () => {
       <Form.Item label="Nazwa Quizu" name="name">
         <Input />
       </Form.Item>
-      <Form.Item label="Kategoria" name="category">
-        <Input />
+      <Form.Item label="Nazwa Quizu" name="description">
+        <TextArea rows={4} />
       </Form.Item>
       <Form.Item
       name="categorys"
@@ -182,15 +184,6 @@ const App: React.FC = () => {
           </div>
         )}
       </Form.List>
-
-      <Form.Item noStyle shouldUpdate>
-        {() => (
-          <Typography>
-            <pre>{JSON.stringify(form.getFieldsValue(), null, 2)}</pre>
-            
-          </Typography>
-        )}
-      </Form.Item>
       <Form.Item {...tailFormItemLayout}>
         <Button type="primary" htmlType="submit" >
           Add Quiz

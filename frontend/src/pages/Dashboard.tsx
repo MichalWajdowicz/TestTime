@@ -2,7 +2,7 @@ import React,{ useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useSignOut } from 'react-auth-kit'
 import '../css/dashboard.css'
-import QuizAdd from '../componets/QuizAdd';
+//import QuizAdd from '../componets/QuizAdd';
 import {
   DesktopOutlined,
   FileOutlined,
@@ -18,12 +18,10 @@ type MenuItem = Required<MenuProps>['items'][number];
 
 function getItem(
   label: React.ReactNode,
-  key: React.Key,
   icon?: React.ReactNode,
   children?: MenuItem[],
 ): MenuItem {
   return {
-    key,
     icon,
     children,
     label,
@@ -31,19 +29,19 @@ function getItem(
 }
 
 const items: MenuItem[] = [
-  getItem(<Link to=""> Profil </Link>,'profil',<DesktopOutlined />),
+  getItem(<Link to=""> Profil </Link>,<DesktopOutlined />),
   // getItem('Stwórz wlasny quiz',"add",<DesktopOutlined />),
-  getItem('Quizy',2,<PieChartOutlined />),
-  getItem(<Link to="quizAdd"> Stwórz wlasny quiz </Link>,'add',<DesktopOutlined />),
+  getItem(<Link to="quiz">Quizy</Link>,<PieChartOutlined />),
+  getItem(<Link to="quizAdd"> Stwórz wlasny quiz </Link>,<DesktopOutlined />),
   // getItem('Stwórz wlasny quiz',"add",<DesktopOutlined />),
-  getItem('Historia', '4', <FileOutlined />),
+  getItem('Historia',<FileOutlined />),
 ];
 
 const Dashboard: React.FC = () => {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
-  const [selectedKey, setSelectedKey] = useState('1'); // Default selected key
+  //const [selectedKey, setSelectedKey] = useState('1'); // Default selected key
   const signOut = useSignOut()
   const navigate = useNavigate();
   const logout = () => {
@@ -51,24 +49,24 @@ const Dashboard: React.FC = () => {
     navigate("/");
   };
 
-  const handleMenuClick = (key: string) => {
-    setSelectedKey(key);
-  };
+  // const handleMenuClick = (key: string) => {
+  //   setSelectedKey(key);
+  // };
 
-  const getContentForSelectedKey = () => {
-    switch (selectedKey) {
-      case '1':
-        return <div>Profil Content</div>;
-      case '2':
-        return <div>Quizy Content</div>;
-      case 'add':
-        return <Link to="/addQuiz"> Add quiz </Link>;
-      case '4':
-        return <div>Historia Content</div>;
-      default:
-        return <div>Default Content</div>;
-    }
-  };
+  // const getContentForSelectedKey = () => {
+  //   switch (selectedKey) {
+  //     case '1':
+  //       return <div>Profil Content</div>;
+  //     case '2':
+  //       return <div>Quizy Content</div>;
+  //     case 'add':
+  //       return <Link to="/addQuiz"> Add quiz </Link>;
+  //     case '4':
+  //       return <div>Historia Content</div>;
+  //     default:
+  //       return <div>Default Content</div>;
+  //   }
+  // };
   return (
     <Layout>
       <Sider
@@ -86,7 +84,7 @@ const Dashboard: React.FC = () => {
           theme="dark"
           mode="inline"
           defaultSelectedKeys={['1']} items={items}
-          onClick={({ key }) => handleMenuClick(key as string)}
+          // onClick={({ key }) => handleMenuClick(key as string)}
         />
       <Button type="primary" onClick={logout}>Logout</Button>
       </Sider>

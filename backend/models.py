@@ -6,6 +6,7 @@ class Categories(models.Model):
     name = models.CharField(max_length=255)
 class Quizs(models.Model):
     name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='author')
     quizCategories = models.ManyToManyField(Categories)
     # Możesz dodać więcej pól w zależności od potrzeb

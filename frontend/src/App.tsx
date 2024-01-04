@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import {useIsAuthenticated} from 'react-auth-kit';
 import { RequireAuth } from 'react-auth-kit'
 import QuizAdd from './componets/QuizAdd';
+import QuizShare from './componets/QuizShare';
 
 function App() {
   const isAuthenticated = useIsAuthenticated()
@@ -28,12 +29,13 @@ function App() {
                   )
                 }
               })()}
+
               <Route path={'/dashboard'} element={
                 <RequireAuth loginPath={'/login'}>
                   <Dashboard/>
-                </RequireAuth> }
-              >
+                </RequireAuth> }>
                 <Route path="quizAdd" element={<QuizAdd/>}></Route>
+                <Route path="quiz" element={<QuizShare/>}></Route>
               </Route>
 
               {/* <Route path={'/quizAdd'} element={
