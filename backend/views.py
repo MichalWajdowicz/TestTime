@@ -6,7 +6,7 @@ from rest_framework import generics
 from .models import Quizs, Categories
 from .serializers import QuizsSerializer, QuizsSerializerList, CategorysSerializer
 from django.db.models import Q, Count  # Import Q to handle complex queries
-from rest_framework.pagination import PageNumberPagination
+
 
 
 
@@ -35,3 +35,6 @@ class QuizListView(generics.ListAPIView):
             queryset = queryset.filter(quizCategories__name__in=categories).annotate(
                 categories_count=Count('quizCategories')).filter(categories_count=len(categories))
         return queryset
+class QuizRetrieveView(generics.RetrieveAPIView):
+    queryset = Quizs.objects.all()
+    serializer_class = QuizsSerializer

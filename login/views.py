@@ -8,6 +8,7 @@ from login.serializers import MyTokenObtainPairSerializer, RegisterSerializer
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
+    permission_classes = [permissions.AllowAny]
     serializer_class = MyTokenObtainPairSerializer
 @api_view(['GET'])
 def getRoutes(request):

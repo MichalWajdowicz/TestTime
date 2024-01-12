@@ -3,6 +3,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import { Button, Card, Form, Input, Space, Typography, Select } from 'antd';
 import { Checkbox } from 'antd';
 import {useAuthUser} from 'react-auth-kit'
+import {useAuthHeader} from 'react-auth-kit'
 import axios, { AxiosError, AxiosResponse } from "axios";
 const { TextArea } = Input;
 const { Option } = Select;
@@ -11,7 +12,7 @@ const App: React.FC = () => {
   const [form] = Form.useForm();
   type Answer = { 
     answer: string;
-    goodAnswer: boolean;
+    good_answer: boolean;
   };
   type Question = {
     name: string;
@@ -28,6 +29,8 @@ const App: React.FC = () => {
     questions: Question[];
   };
   const authUser = useAuthUser();
+  const authHeader = useAuthHeader();
+  
   const tailFormItemLayout = {
     wrapperCol: {
       xs: {
@@ -56,7 +59,7 @@ const App: React.FC = () => {
         }
         answer = {
           answer: values.items[i].Answer[j].Answer,
-          goodAnswer: values.items[i].Answer[j].goodAnswer,
+          good_answer: values.items[i].Answer[j].goodAnswer,
         };
         answers.push(answer);
       }
@@ -85,12 +88,10 @@ const App: React.FC = () => {
     };
     console.log();
     console.log(JSON.stringify(quiz, null, 2));
-
-
     try {
         const response = await axios.post(
           "http://localhost:8000/quiz/addQuiz/",
-          quiz
+          quiz, { headers: { 'Authorization': authHeader() } }
         );
         console.log(response);
       } catch (error) {

@@ -45,7 +45,6 @@ function App() {
               /> */}
 
         <Route path="/register" element={<Register/>}></Route>
-        {/* <Route path="/dashboard" element={<Dashboard/>}></Route> */}
         
       </Routes>
       </div>

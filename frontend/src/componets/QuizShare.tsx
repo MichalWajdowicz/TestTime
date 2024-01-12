@@ -1,31 +1,60 @@
 import React, { useEffect, useState } from 'react';
-import { Card, List, Input, Button, Select } from 'antd';
+import { Card, List, Input, Button, Select, Modal } from 'antd';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { PlayCircleOutlined, InfoCircleOutlined, SearchOutlined } from '@ant-design/icons';
-
+import {useAuthHeader} from 'react-auth-kit'
 const { Meta } = Card;
 const { Option } = Select;
 
 const App: React.FC = () => {
   type Quiz = {
+    id : number;
     name: string;
     user: string;
     description?: string;
     quizCategories: string;
   };
   type Category = {
-      name: string;
-    };
-  const [quiz, setQuiz] = useState<Quiz[]>([]);
+    name: string;
+  };
+
+  const authHeader = useAuthHeader();
+  const [text, setText] = useState<string | undefined>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [filteredQuiz, setFilteredQuiz] = useState<Quiz[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [id, setId] = useState<number>(0);
+
+  const axiosInstance = axios.create({
+    baseURL: 'http://localhost:8000',
+    headers: { 'Authorization': authHeader() },
+  });
+
+  const showModal = (description:string | undefined) => {
+    setText(description);
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
   
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+
+  const openQuiz = (n:number) => {
+      setId(n);
+      console.log(n);
+      console.log(id);
+  };
+
   const fetchQuizData = (searchQuery: string, categories: string[]) => {
-    axios
-      .get('http://localhost:8000/quiz/listQuiz/', {
-        params: { searchQuery, categories: categories.join(',') }, // Pass categories as a comma-separated string
+    axiosInstance
+      .get('/quiz/listQuiz/', {
+        params: { searchQuery, categories: categories.join(',') } , 
       })
       .then((response: AxiosResponse) => {
         setFilteredQuiz(response.data);
@@ -35,21 +64,9 @@ const App: React.FC = () => {
       });
   };
 
-  useEffect(() => {
-    axios
-      .get('http://localhost:8000/quiz/listQuiz/')
-      .then((response: AxiosResponse) => {
-        setQuiz(response.data);
-        setFilteredQuiz(response.data);
-      })
-      .catch((err: AxiosError) => {
-        console.log(err);
-      });
-  }, []);
-
   const fetchCategories = () => {
-    axios
-      .get('http://localhost:8000/quiz/listCategory/')
+    axiosInstance
+      .get('/quiz/listCategory/')
       .then((response: AxiosResponse) => {
         setCategories(response.data);
       })
@@ -59,16 +76,15 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    fetchQuizData("", []);
+  }, []);
+
+  useEffect(() => {
     fetchCategories();
   }, []);
+
   const handleSearch = () => {
     fetchQuizData(searchQuery, selectedCategories);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
   };
 
   const handleCategoryChange = (value: string[]) => {
@@ -76,7 +92,6 @@ const App: React.FC = () => {
     // Fetch data when categories change
     fetchQuizData(searchQuery, value);
   };
-
   return (
     <div>
       <div style={{ display: 'flex', marginBottom: '16px'  }}>
@@ -104,6 +119,7 @@ const App: React.FC = () => {
           Search
         </Button>
       </div>
+     
       <List
         grid={{
           gutter: 16,
@@ -125,8 +141,10 @@ const App: React.FC = () => {
           <List.Item>
             <Card
               actions={[
-                <PlayCircleOutlined style={{ fontSize: 20 }} />,
-                <InfoCircleOutlined style={{ fontSize: 20 }} />,
+                <InfoCircleOutlined onClick={() => showModal(item.description)} style={{ fontSize: 20 }} />,
+                
+                <PlayCircleOutlined onClick={() => openQuiz(item.id)} style={{ fontSize: 20 }}  />,
+                
               ]}
             >
               <Meta title={item.name} />
@@ -143,11 +161,16 @@ const App: React.FC = () => {
                   {item.quizCategories}
                 </div>
               </div>
+
             </Card>
           </List.Item>
         )}
       />
+                    <Modal title="Opis Quizu" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        {text}
+        </Modal>
     </div>
+    
   );
 };
 

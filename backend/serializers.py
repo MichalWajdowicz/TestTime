@@ -7,6 +7,15 @@ class AnswersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answers
         fields = ['answer', 'good_answer']
+    def to_representation(self, instance):
+        # Ta metoda ustala, jakie dane mają być zwracane podczas operacji GET
+        return {
+            'answer': instance.answer,
+        }
+
+    def create(self, validated_data):
+        # Ta metoda ustala, jakie dane mają być zapisywane podczas operacji POST
+        return Answers.objects.create(**validated_data)
 
 class QuestionsSerializer(serializers.ModelSerializer):
     answers = AnswersSerializer(many=True)
@@ -58,7 +67,7 @@ class QuizsSerializerList(serializers.ModelSerializer):
 
     class Meta:
         model = Quizs
-        fields = ['user', 'name', 'quizCategories', 'description']
+        fields = ['id','user', 'name', 'quizCategories', 'description']
 
     def get_quizCategories(self, obj):
         # Retrieve the category names and join them into a comma-separated string
