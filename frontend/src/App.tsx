@@ -9,6 +9,8 @@ import {useIsAuthenticated} from 'react-auth-kit';
 import { RequireAuth } from 'react-auth-kit'
 import QuizAdd from './componets/QuizAdd';
 import QuizShare from './componets/QuizShare';
+import Quiz from './pages/Quiz';
+import QuizHistory from './componets/QuizHistory';
 
 function App() {
   const isAuthenticated = useIsAuthenticated()
@@ -36,6 +38,7 @@ function App() {
                 </RequireAuth> }>
                 <Route path="quizAdd" element={<QuizAdd/>}></Route>
                 <Route path="quiz" element={<QuizShare/>}></Route>
+                <Route path="history" element={<QuizHistory/>}></Route>
               </Route>
 
               {/* <Route path={'/quizAdd'} element={
@@ -43,7 +46,10 @@ function App() {
                 <QuizAdd/>
               </RequireAuth> }
               /> */}
-
+        <Route path="/quiz/:id" element={
+                <RequireAuth loginPath={'/login'}>
+                 <Quiz/>
+                </RequireAuth> }></Route>
         <Route path="/register" element={<Register/>}></Route>
         
       </Routes>

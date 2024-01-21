@@ -20,7 +20,7 @@ function LoginForm(props: any) {
     onSubmit: async (values: any) => {
       try {
         const response = await axios.post(
-          "http://localhost:8000/api/token/",
+          "http://localhost:8000/auth/token/",
           values
         );
         signIn({

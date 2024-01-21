@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useRef } from 'react';
 import { Card, List, Input, Button, Select, Modal } from 'antd';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { PlayCircleOutlined, InfoCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import {useAuthHeader} from 'react-auth-kit'
+import { useNavigate  } from 'react-router-dom';
 const { Meta } = Card;
 const { Option } = Select;
 
@@ -17,7 +18,7 @@ const App: React.FC = () => {
   type Category = {
     name: string;
   };
-
+  const navigate = useNavigate();
   const authHeader = useAuthHeader();
   const [text, setText] = useState<string | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,7 +27,7 @@ const App: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [id, setId] = useState<number>(0);
-
+  const shouldLog=useRef(true);
   const axiosInstance = axios.create({
     baseURL: 'http://localhost:8000',
     headers: { 'Authorization': authHeader() },
@@ -46,14 +47,12 @@ const App: React.FC = () => {
   };
 
   const openQuiz = (n:number) => {
-      setId(n);
-      console.log(n);
-      console.log(id);
+    navigate(`/quiz/${n}`)
   };
 
   const fetchQuizData = (searchQuery: string, categories: string[]) => {
     axiosInstance
-      .get('/quiz/listQuiz/', {
+      .get('/api/quiz/', {
         params: { searchQuery, categories: categories.join(',') } , 
       })
       .then((response: AxiosResponse) => {
@@ -66,7 +65,7 @@ const App: React.FC = () => {
 
   const fetchCategories = () => {
     axiosInstance
-      .get('/quiz/listCategory/')
+      .get('/api/listCategory/')
       .then((response: AxiosResponse) => {
         setCategories(response.data);
       })
@@ -76,12 +75,13 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    if (shouldLog.current) {
+      shouldLog.current = false
     fetchQuizData("", []);
+    fetchCategories();
+    }
   }, []);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
 
   const handleSearch = () => {
     fetchQuizData(searchQuery, selectedCategories);
@@ -132,7 +132,6 @@ const App: React.FC = () => {
         }}
         pagination={{
           onChange: (page) => {
-            console.log(page);
           },
           pageSize: 9,
         }}

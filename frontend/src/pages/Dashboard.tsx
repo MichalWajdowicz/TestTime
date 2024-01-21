@@ -34,7 +34,7 @@ const items: MenuItem[] = [
   getItem(<Link to="quiz">Quizy</Link>,<PieChartOutlined />),
   getItem(<Link to="quizAdd"> Stwórz wlasny quiz </Link>,<DesktopOutlined />),
   // getItem('Stwórz wlasny quiz',"add",<DesktopOutlined />),
-  getItem('Historia',<FileOutlined />),
+  getItem(<Link to="history"> Historia </Link>,<FileOutlined />),
 ];
 
 const Dashboard: React.FC = () => {

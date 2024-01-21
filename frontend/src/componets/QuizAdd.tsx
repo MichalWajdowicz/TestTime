@@ -23,7 +23,6 @@ const App: React.FC = () => {
   };
   type Quiz = {
     name: string;
-    user: string;
     description: string;
     quizCategories: Categories[];
     questions: Question[];
@@ -82,18 +81,14 @@ const App: React.FC = () => {
     quiz = {
       name: values.name,
       description: values.description,
-      user: authUser()?.values,
       questions: questions,
       quizCategories: categories,
     };
-    console.log();
-    console.log(JSON.stringify(quiz, null, 2));
     try {
         const response = await axios.post(
-          "http://localhost:8000/quiz/addQuiz/",
+          "http://localhost:8000/api/quiz/",
           quiz, { headers: { 'Authorization': authHeader() } }
         );
-        console.log(response);
       } catch (error) {
         console.error(error);
       }

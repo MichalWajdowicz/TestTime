@@ -54,7 +54,7 @@ const Register: React.FC = () => {
 
     try {
         const response = await axios.post(
-          "http://localhost:8000/api/register/",
+          "http://localhost:8000/auth/register/",
           register
         );
         console.log(response);

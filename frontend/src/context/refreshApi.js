@@ -9,7 +9,7 @@ const refreshApi = createRefresh({
         refreshToken,
       }) => {
       try {
-        const response = await axios.post("http://localhost:8000/api/token/refresh/", {'refresh': refreshToken}, {
+        const response = await axios.post("http://localhost:8000/auth/token/refresh/", {'refresh': refreshToken}, {
           headers: {'Authorization': `Bearer ${authToken}`}}
         )
         return {
