@@ -184,64 +184,7 @@ class CheckQuizResultsView(APIView):
 
         # Return the overall score in the response
         return Response({'overall_score': overall_score}, status=status.HTTP_200_OK)
-class UserSkillsRadarView(APIView):
-    def get(self, request, format=None):
-        user = request.user
 
-        # Pobieramy średnie wyniki użytkownika w poszczególnych kategoriach
-        user_category_avg_scores = (
-            QuizResults.objects
-            .filter(user=user)
-            .values('quiz__quizCategory__name')
-            .annotate(avg_score=Avg('score'))
-        )
-
-        # Pobieramy ilość quizów w poszczególnych kategoriach, w których użytkownik brał udział
-        user_category_quiz_counts = (
-            QuizResults.objects
-            .filter(user=user)
-            .values('quiz__quizCategory__name')
-            .annotate(num_quizzes=Count('quiz__id', distinct=True))
-        )
-
-        # Łączymy obie listy, aby uzyskać pełne informacje o umiejętnościach użytkownika
-        user_skills_data = [
-            {
-                'category': avg_score['quiz__quizCategory__name'],
-                'avg_score': avg_score['avg_score'],
-                'num_quizzes': quiz_count['num_quizzes'],
-            }
-            for avg_score, quiz_count in zip(user_category_avg_scores, user_category_quiz_counts)
-        ]
-
-        return Response(user_skills_data)
-class CategoryPieChartView(APIView):
-    def get(self, request, format=None):
-        user = request.user
-
-        # Pobieramy ilość rozwiązanych quizów w poszczególnych kategoriach przez użytkownika
-        category_quiz_counts = (
-            QuizResults.objects
-            .filter(user=user)
-            .values('quiz__quizCategory__name')
-            .annotate(num_quizzes=Count('quiz__id', distinct=True))
-        )
-
-        # Przygotowujemy dane w formie odpowiedniej dla wykresu kołowego
-        category_pie_data = [
-            {'category': quiz_count['quiz__quizCategory__name'], 'num_quizzes': quiz_count['num_quizzes']}
-            for quiz_count in category_quiz_counts
-        ]
-
-        return Response(category_pie_data)
-class ScoreDistributionHistogramView(APIView):
-    def get(self, request, format=None):
-        user = request.user
-
-        # Pobieramy wyniki punktowe użytkownika w quizach
-        user_scores = QuizResults.objects.filter(user=user).values_list('score', flat=True)
-
-        return Response(user_scores)
 class CombinedUserStatsView(APIView):
     def get(self, request, format=None):
         user = request.user

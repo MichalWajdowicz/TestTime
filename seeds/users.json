@@ -1,0 +1,42 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "user1",
+      "password": "pbkdf2_sha256$600000$vBQpLGqtAaXJgnl3PqahaT$tjSFSH9RmVef9M7pBUOJJRpUWMf8mjRrqxGb7z6oOqU=",
+      "email": "worker@example.com",
+      "first_name": "John",
+      "last_name": "Doe",
+      "is_superuser": false,
+      "is_staff": false
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "username": "user2",
+      "password": "pbkdf2_sha256$600000$vBQpLGqtAaXJgnl3PqahaT$tjSFSH9RmVef9M7pBUOJJRpUWMf8mjRrqxGb7z6oOqU=",
+      "first_name": "Jane",
+      "last_name": "Doe",
+      "email": "worker2@example.com",
+      "is_superuser": false,
+      "is_staff": false
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+      "username": "user3",
+      "password": "pbkdf2_sha256$600000$vBQpLGqtAaXJgnl3PqahaT$tjSFSH9RmVef9M7pBUOJJRpUWMf8mjRrqxGb7z6oOqU=",
+      "email": "worker2@example.com",
+      "first_name": "Alex",
+      "last_name": "Quinn",
+      "is_superuser": false,
+      "is_staff": false
+    }
+  }
+
+]

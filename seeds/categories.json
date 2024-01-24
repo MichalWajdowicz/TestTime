@@ -1,0 +1,58 @@
+[
+  {
+    "model": "backend.Categories",
+    "pk": 1,
+    "fields": {
+      "name": "Informatyka"
+    }
+  },
+  {
+    "model": "backend.Categories",
+    "pk": 2,
+    "fields": {
+      "name": "Matematyka"
+    }
+  },
+  {
+    "model": "backend.Categories",
+    "pk": 3,
+    "fields": {
+      "name": "Fizyka"
+    }
+  },
+  {
+    "model": "backend.Categories",
+    "pk": 4,
+    "fields": {
+      "name": "Chemia"
+    }
+  },
+  {
+    "model": "backend.Categories",
+    "pk": 5,
+    "fields": {
+      "name": "Biologia"
+    }
+  },
+  {
+    "model": "backend.Categories",
+    "pk": 6,
+    "fields": {
+      "name": "Historia"
+    }
+  },
+  {
+    "model": "backend.Categories",
+    "pk": 7,
+    "fields": {
+      "name": "Geografia"
+    }
+  },
+    {
+    "model": "backend.Categories",
+    "pk": 8,
+    "fields": {
+      "name": "Wiedza ogólna"
+    }
+  }
+]

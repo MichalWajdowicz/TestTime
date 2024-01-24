@@ -27,7 +27,7 @@ class QuestionsSerializer(serializers.ModelSerializer):
     def validate(self, date):
         if date['name'] is None:
             raise serializers.ValidationError("Pytanie nie może być puste.")
-        if len(date['answers']) < 2:
+        if len(date['answers']) < 1:
             raise serializers.ValidationError("Musisz dodać odpowiedzi.")
         return date
 class CategorysSerializer(serializers.ModelSerializer):
@@ -82,6 +82,9 @@ class QuizsSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Dla pytania '{}' istnieją takie same odpowiedzi.".format(question['name']))
 
+        question_names = [question['name'] for question in data['questions']]
+        if len(set(question_names)) != len(question_names):
+            raise serializers.ValidationError("Pytania w quizie nie mogą sie powtarzać.")
         return data
 
 class QuizsSerializerList(serializers.ModelSerializer):
