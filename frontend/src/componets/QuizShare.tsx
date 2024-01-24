@@ -4,6 +4,7 @@ import axios, { AxiosError, AxiosResponse } from 'axios';
 import { PlayCircleOutlined, InfoCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import {useAuthHeader} from 'react-auth-kit'
 import { useNavigate  } from 'react-router-dom';
+import { Content } from 'antd/es/layout/layout';
 const { Meta } = Card;
 const { Option } = Select;
 
@@ -13,7 +14,7 @@ const App: React.FC = () => {
     name: string;
     user: string;
     description?: string;
-    quizCategories: string;
+    quizCategory: string;
   };
   type Category = {
     name: string;
@@ -93,8 +94,8 @@ const App: React.FC = () => {
     fetchQuizData(searchQuery, value);
   };
   return (
-    <div>
-      <div style={{ display: 'flex', marginBottom: '16px'  }}>
+    <Content style={{paddingTop:"2rem"}}>
+      <div style={{ display: 'flex', marginBottom: '16px',  paddingBottom:"2rem"}}>
         <Input
           placeholder="Search..."
           value={searchQuery}
@@ -157,7 +158,7 @@ const App: React.FC = () => {
                 <div style={{ float: 'right' }}>
                   Kategoria:
                   <br />
-                  {item.quizCategories}
+                  {item.quizCategory}
                 </div>
               </div>
 
@@ -168,7 +169,7 @@ const App: React.FC = () => {
                     <Modal title="Opis Quizu" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
         {text}
         </Modal>
-    </div>
+    </Content>
     
   );
 };

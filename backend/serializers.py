@@ -24,6 +24,12 @@ class QuestionsSerializer(serializers.ModelSerializer):
         model = Questions
         fields = ['name', 'answers']
 
+    def validate(self, date):
+        if date['name'] is None:
+            raise serializers.ValidationError("Pytanie nie może być puste.")
+        if len(date['answers']) < 2:
+            raise serializers.ValidationError("Musisz dodać odpowiedzi.")
+        return date
 class CategorysSerializer(serializers.ModelSerializer):
     class Meta:
         model = Categories
@@ -31,21 +37,20 @@ class CategorysSerializer(serializers.ModelSerializer):
 
 class QuizsSerializer(serializers.ModelSerializer):
     questions = QuestionsSerializer(many=True)
-    quizCategories = CategorysSerializer(many=True)
     user = serializers.CharField(source='user.username')
+    quizCategory = serializers.CharField(source='quizCategory.name')
 
     class Meta:
         model = Quizs
-        fields = ['user', 'name', 'questions', 'quizCategories', 'description']
+        fields = ['user', 'name', 'questions', 'quizCategory', 'description']
 
     def create(self, validated_data):
         username = validated_data.pop('user')['username']  # Extract the username from the input data
         user = User.objects.get(username=username)
         questions_data = validated_data.pop('questions')
-        categories_data = validated_data.pop('quizCategories')
+        category_data = Categories.objects.get(name=validated_data.pop('quizCategory')['name'])
 
-
-        quiz = Quizs.objects.create(user=user, **validated_data)
+        quiz = Quizs.objects.create(user=user, quizCategory=category_data, **validated_data)
 
 
         for question_data in questions_data:
@@ -55,32 +60,43 @@ class QuizsSerializer(serializers.ModelSerializer):
             for answer_data in answers_data:
                 Answers.objects.create(question=question, **answer_data)
 
-        for category_data in categories_data:
-            category, created = Categories.objects.get_or_create(**category_data)
-            quiz.quizCategories.add(category)
-
         return quiz
+    def validate(self, data):
+
+        quiz_category_name = data.get('quizCategory', {}).get('name')
+        if not quiz_category_name:
+            raise serializers.ValidationError("Kategoria nie może być pusta.")
+        if not Categories.objects.filter(name=quiz_category_name).exists():
+            raise serializers.ValidationError("Kategoria '{}' nie istnieje.".format(quiz_category_name))
+        if data['name'] is None:
+            raise serializers.ValidationError("Nazwa nie może być puste.")
+        if data['description'] is None:
+            raise serializers.ValidationError("Opis nie może być pusty.")
+        if data['user'] is None:
+            raise serializers.ValidationError("Uzytkownik nie może być pusty.")
+        if len(data['questions']) < 1:
+            raise serializers.ValidationError("Musisz dodać pytania.")
+        for question in data['questions']:
+            answers = [answer['answer'] for answer in question['answers']]
+            if len(set(answers)) != len(answers):
+                raise serializers.ValidationError(
+                    "Dla pytania '{}' istnieją takie same odpowiedzi.".format(question['name']))
+
+        return data
 
 class QuizsSerializerList(serializers.ModelSerializer):
     user = serializers.CharField(source='user.username')
-    quizCategories = serializers.SerializerMethodField()
-
+    quizCategory = serializers.CharField(source='quizCategory.name')
     class Meta:
         model = Quizs
-        fields = ['id','user', 'name', 'quizCategories', 'description']
+        fields = ['id','user', 'name', 'quizCategory', 'description']
 
-    def get_quizCategories(self, obj):
-        # Retrieve the category names and join them into a comma-separated string
-        return ", ".join(category.name for category in obj.quizCategories.all())
 
 class QuizResultsSerializer(serializers.ModelSerializer):
     quiz = QuizsSerializerList()
     class Meta:
         model = QuizResults
         fields = ['quiz', 'score', 'date']
-
-
-
 
 class UserAnswersSerializer(serializers.ModelSerializer):
     answers = AnswersSerializer(many=True)
@@ -93,3 +109,24 @@ class QuizResultsStartSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizResults
         fields = ['id']
+
+class UserDetilSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']
+class UserChangePasswordSerializer(serializers.Serializer):
+    oldPassword = serializers.CharField(required=True)
+    newPassword = serializers.CharField(required=True)
+
+    def validate(self, data):
+        if data['oldPassword'] is None:
+            raise serializers.ValidationError("Stare hasło nie może być puste.")
+        if data['newPassword'] is None:
+            raise serializers.ValidationError("Nowe hasło nie może być puste.")
+        if data['oldPassword'] == data['newPassword']:
+            raise serializers.ValidationError("Nowe hasło nie może być takie samo jak stare.")
+        if len(data['newPassword']) < 8:
+            raise serializers.ValidationError("Hasło musi mieć minimum 8 znaków.")
+        if not any(char in data['newPassword'] for char in "!@#$%^&*()_-+=<>?/[]{}|"):
+            raise serializers.ValidationError("Hasło musi zawierać co najmniej jeden znak specjalny.")
+        return data

@@ -14,16 +14,17 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['email'] = user.email
 
         return token
-
 class RegisterSerializer(serializers.ModelSerializer):
     # custom validation for all fields in the serializer and return the error message
     def validate(self, data):
         if User.objects.filter(username=data['username']).exists():
-            raise serializers.ValidationError("A user with that username already exists.")
+            raise serializers.ValidationError("Taki użytkownik już istnieje.")
         if User.objects.filter(email=data['email']).exists():
-            raise serializers.ValidationError("A user with that email already exists.")
-        if len(data['password']) < 8:
-            raise serializers.ValidationError("The password must be at least 8 characters long.")
+            raise serializers.ValidationError("Taki email już istnieje")
+        if len(data['password']) < 8 :
+            raise serializers.ValidationError("Hasło musi mieć minimum 8 znaków.")
+        if not any(char in data['password'] for char in "!@#$%^&*()_-+=<>?/[]{}|"):
+            raise serializers.ValidationError("Hasło musi zawierać co najmniej jeden znak specjalny.")
         return data
 
     class Meta:

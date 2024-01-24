@@ -1,191 +1,260 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CloseOutlined } from '@ant-design/icons';
-import { Button, Card, Form, Input, Space, Typography, Select } from 'antd';
+import { Button, Card, Form, Input, Space, Select, message, Row, Col } from 'antd';
 import { Checkbox } from 'antd';
-import {useAuthUser} from 'react-auth-kit'
-import {useAuthHeader} from 'react-auth-kit'
-import axios, { AxiosError, AxiosResponse } from "axios";
+import { useAuthHeader } from 'react-auth-kit';
+import axios, { AxiosError, AxiosResponse } from 'axios';
+
 const { TextArea } = Input;
 const { Option } = Select;
 
 const App: React.FC = () => {
+
   const [form] = Form.useForm();
-  type Answer = { 
+  const [hasQuestions, setHasQuestions] = useState(false);
+  const authHeader = useAuthHeader();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const shouldLog = useRef(true);
+  const axiosInstance = axios.create({
+    baseURL: 'http://localhost:8000',
+    headers: { 'Authorization': authHeader() },
+  });
+
+  type Answer = {
     answer: string;
     good_answer: boolean;
   };
+
   type Question = {
     name: string;
     answers: Answer[];
   };
-  type Categories = { 
+
+  type Category = {
     name: string;
   };
+
   type Quiz = {
     name: string;
     description: string;
-    quizCategories: Categories[];
+    quizCategory: Category;
     questions: Question[];
-  };
-  const authUser = useAuthUser();
-  const authHeader = useAuthHeader();
-  
-  const tailFormItemLayout = {
-    wrapperCol: {
-      xs: {
-        span: 24,
-        offset: 0,
-      },
-      sm: {
-        span: 16,
-        offset: 8,
-      },
-    },
   };
 
   let question: Question;
-  
+
+  const fetchCategories = () => {
+    axiosInstance
+      .get('/api/listCategory/')
+      .then((response: AxiosResponse) => {
+        setCategories(response.data);
+      })
+      .catch((err: AxiosError) => {
+        console.log(err);
+      });
+  };
+
+  useEffect(() => {
+    if (shouldLog.current) {
+      shouldLog.current = false;
+      fetchCategories();
+    }
+  }, []);
+
+  const checkDuplicateAnswers = (answers: string[]) => {
+    const uniqueAnswers = new Set(answers);
+    return uniqueAnswers.size === answers.length;
+  };
+
   const onFinish = async (values: any) => {
     let questions: Question[] = [];
     let answers: Answer[] = [];
     let answer: Answer;
     let quiz: Quiz;
-    //kategorie dodac
-    for (let i = 0; i < values.items.length; i++) {
-      for (let j = 0; j < values.items[i].Answer.length; j++) {
-        if (values.items[i].Answer[j].goodAnswer === undefined) {
-          values.items[i].Answer[j].goodAnswer = false;
+
+    for (let i = 0; i < values.Pytania.length; i++) {
+      let isAnyAnswerCorrect = false;
+      let answersCount = 0;
+
+      for (let j = 0; j < values.Pytania[i].Answer.length; j++) {
+        if (values.Pytania[i].Answer[j].goodAnswer === undefined) {
+          values.Pytania[i].Answer[j].goodAnswer = false;
         }
         answer = {
-          answer: values.items[i].Answer[j].Answer,
-          good_answer: values.items[i].Answer[j].goodAnswer,
+          answer: values.Pytania[i].Answer[j].Answer,
+          good_answer: values.Pytania[i].Answer[j].goodAnswer,
         };
         answers.push(answer);
-      }
-      question = {
-        name: values.items[i].qustion,
-        answers: answers,
 
+        if (values.Pytania[i].Answer[j].goodAnswer) {
+          isAnyAnswerCorrect = true;
+        }
+
+        answersCount += values.Pytania[i].Answer[j].Answer.trim().length > 0 ? 1 : 0;
+      }
+
+      if (!isAnyAnswerCorrect) {
+        message.error(`Pytanie ${i + 1} musi mieć przynajmniej jedną poprawną odpowiedź.`, 4);
+        return;
+      }
+
+      if (answersCount < 2) {
+        message.error(`Pytanie ${i + 1} musi zawierać przynajmniej dwie odpowiedzi.`, 4);
+        return;
+      }
+
+      if (!checkDuplicateAnswers(answers.map(ans => ans.answer))) {
+        message.error(`Pytanie ${i + 1} nie może mieć identycznych odpowiedzi.`, 4);
+        return;
+      }
+
+      question = {
+        name: values.Pytania[i].qustion,
+        answers: answers,
       };
       answers = [];
       questions.push(question);
     }
-    let categories: Categories[] = [];
-    for (let i = 0; i < values.categorys.length; i++) {
-      let category: Categories = {
-        name: values.categorys[i],
-      };
-      categories.push(category);
-    } 
-    
+
     quiz = {
       name: values.name,
       description: values.description,
       questions: questions,
-      quizCategories: categories,
+      quizCategory: values.category,
     };
+
     try {
-        const response = await axios.post(
-          "http://localhost:8000/api/quiz/",
-          quiz, { headers: { 'Authorization': authHeader() } }
-        );
-      } catch (error) {
-        console.error(error);
+      const response = await axios.post(
+        "http://localhost:8000/api/quiz/",
+        quiz, { headers: { 'Authorization': authHeader() } }
+      );
+      message.success('Quiz został dodany!', 4);
+      form.resetFields();
+    } catch (err: any) {
+      if (err.response !== undefined) {
+        for (let [key, value] of Object.entries(err.response.data)) {
+          message.error(`${value}`, 4);
+        }
       }
+    }
   };
+
+  const handleFieldsChange = (changedFields: any) => {
+    const currentFields = form.getFieldValue('Pytania') || [];
+    setHasQuestions(currentFields.length >= 3);
+  };
+
+
   return (
-    <Form
-      labelCol={{ span: 6 }}
-      wrapperCol={{ span: 18 }}
-      form={form}
-      onFinish={onFinish}
-      name="Question"
-      style={{ maxWidth: 600 }}
-      autoComplete="off"
-      initialValues={{ items: [{}] }}
-    >
-      <Form.Item label="Nazwa Quizu" name="name">
-        <Input />
-      </Form.Item>
-      <Form.Item label="Nazwa Quizu" name="description">
-        <TextArea rows={4} />
-      </Form.Item>
-      <Form.Item
-      name="categorys"
-      label="Select[multiple]"
-      rules={[{ required: true, message: 'Please select your favourite colors!', type: 'array' }]}
-    >
-      <Select mode="multiple" placeholder="Please select favourite colors">
-        <Option value="red">Red</Option>
-        <Option value="green">Green</Option>
-        <Option value="blue">Blue</Option>
-      </Select>
-    </Form.Item>
-      <Form.List name="items">
-        {(fields, { add, remove }) => (
-          <div style={{ display: 'flex', rowGap: 16, flexDirection: 'column' }}>
-            {fields.map((field) => (
-              <Card
-                size="small"
-                title={`Item ${field.name + 1}`}
-                key={field.key}
-                extra={
-                  <CloseOutlined
-                    onClick={() => {
-                      remove(field.name);
-                    }}
-                  />
-                }
-              >
-                <Form.Item label="Pytanie" name={[field.name, 'qustion']}>
-                  <Input />
-                </Form.Item>
+    <Row justify="center" align="middle">
+      <Col xs={24} sm={20} md={16} lg={12} xl={10}>
+        <Card title="Dodaj Quiz" style={{ textAlign: 'center', boxShadow: '0px 0px 23px 5px' }}>
+        <Form
+            labelCol={{ span: 6 }}
+            wrapperCol={{ span: 18 }}
+            form={form}
+            onFinish={onFinish}
+            onFieldsChange={(_, allFields) => handleFieldsChange(allFields)}
+            name="Question"
+            style={{ maxWidth: 600 }}
+            autoComplete="off"
+            initialValues={{ Pytania: [{}] }}
+          >
+            <Form.Item label="Nazwa Quizu" name="name" rules={[{ required: true, max: 200, message: 'Nazwa Quizu jest wymagana (max 200 znaków)' }]}>
+              <Input />
+            </Form.Item>
+            <Form.Item label="Opis Quizu" name="description" rules={[{ required: true, max: 600, message: 'Opis Quizu jest wymagany (max 600 znaków)' }]}>
+              <TextArea rows={4} />
+            </Form.Item>
+            <Form.Item
+              name="category"
+              label="Select"
+              rules={[{ required: true, message: 'Proszę wybrać kategorię' }]}
+            >
+              <Select placeholder="Wybierz kategorie">
+              {categories.map((category) => (
+            <Option key={category.name} value={category.name}>
+              {category.name}
+            </Option>
+          ))}
+              </Select>
+            </Form.Item>
+            <Form.List name="Pytania">
+              {(fields, { add, remove }) => (
+                <div style={{ display: 'flex', rowGap: 16, flexDirection: 'column' }}>
+                  {fields.map((field) => (
+                    <Card
+                      size="small"
+                      title={`Pytanie ${field.name + 1}`}
+                      key={field.key}
+                      extra={
+                        <CloseOutlined
+                          onClick={() => {
+                            remove(field.name);
+                          }}
+                        />
+                      }
+                    >
+                      <Form.Item label="Pytanie" name={[field.name, 'qustion']} rules={[{ required: true, max: 200, message: 'Pytanie jest wymagane (max 200 znaków)' }]}>
+                        <Input />
+                      </Form.Item>
 
-                {/* Nest Form.List */}
-                <Form.Item label="Odpowiedzi">
-                  <Form.List name={[field.name, 'Answer']}>
-                    {(subFields, subOpt) => (
-                      <div style={{ display: 'flex', flexDirection: 'column', rowGap: 16 }}>
-                        {subFields.map((subField) => (
-                          <Space key={subField.key}>
-                            <Form.Item noStyle name={[subField.name, 'Answer']}>
-                              <Input placeholder="Answer" />
-                            </Form.Item>
-                            <Form.Item  noStyle name={[subField.name, 'goodAnswer']} valuePropName="checked">
-                              <Checkbox>Prawidłowa odpowiedź</Checkbox>
-                            </Form.Item>
-                            <CloseOutlined
-                              onClick={() => {
-                                subOpt.remove(subField.name);
-                              }}
-                            />
-                          </Space>
-                        ))}
-                         {subFields.length < 6 && (
-                        <Button type="dashed" onClick={() => subOpt.add()} block>
-                          + Add Sub Item
-                        </Button>)}
-                      </div>
-                    )}
-                  </Form.List>
-                </Form.Item>
-              </Card>
-            ))}
+                      <Form.Item label="Odpowiedzi">
+                        <Form.List name={[field.name, 'Answer']}>
+                          {(subFields, subOpt) => (
+                            <div style={{ display: 'flex', flexDirection: 'column', rowGap: 16 }}>
+                              {subFields.map((subField) => (
+                                <Space key={subField.key}>
+                                  <Form.Item noStyle name={[subField.name, 'Answer']} rules={[{ required: true, max: 200, message: 'Odpowiedź jest wymagana (max 200 znaków)' }]}>
+                                    <Input placeholder="Answer" />
+                                  </Form.Item>
+                                  <Form.Item noStyle name={[subField.name, 'goodAnswer']} valuePropName="checked">
+                                    <Checkbox>Prawidłowa odpowiedź</Checkbox>
+                                  </Form.Item>
+                                  <CloseOutlined
+                                    onClick={() => {
+                                      subOpt.remove(subField.name);
+                                    }}
+                                  />
+                                </Space>
+                              ))}
+                              {subFields.length < 6 && (
+                                <Button type="dashed" onClick={() => subOpt.add()} block>
+                                  + Dodaj odpowiedź
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </Form.List>
+                      </Form.Item>
+                    </Card>
+                  ))}
 
-            {fields.length < 30 && (
-              <Button type="dashed" onClick={() => add()} block>
-                + Add Item
-              </Button>
-            )}
-          </div>
-        )}
-      </Form.List>
-      <Form.Item {...tailFormItemLayout}>
-        <Button type="primary" htmlType="submit" >
-          Add Quiz
-        </Button>
-      </Form.Item>
-    </Form>
+                  {fields.length < 30 && (
+                    <Button type="dashed" onClick={() => add()} block>
+                      + Dodaj pytanie
+                    </Button>
+                  )}
+                </div>
+              )}
+            </Form.List>
+            <Form.Item
+              style={{ paddingTop: '1rem' }}
+              wrapperCol={{ span: 24 }}
+              shouldUpdate={() => true}
+  
+              noStyle
+            >
+              {() => (
+                <Button type="primary" style={{marginTop:"1rem"}} htmlType="submit" disabled={!hasQuestions}>
+                  Dodaj Quiz
+                </Button>
+              )}
+            </Form.Item>
+          </Form>
+        </Card>
+      </Col>
+    </Row>
   );
 };
 

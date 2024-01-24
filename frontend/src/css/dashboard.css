@@ -9,8 +9,9 @@
     bottom: 0;
 } 
 .side {
-    min-height: calc(100vh - 157px);
+    min-height: calc(100vh - 93px);
 } 
 a {
     text-decoration: none;
 }
+

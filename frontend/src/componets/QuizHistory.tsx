@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Card, Input, Button, Select, List,Row,Col } from 'antd';
+import {  Input, Button, Select, List,Row,Col } from 'antd';
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import { PlayCircleOutlined, InfoCircleOutlined, SearchOutlined } from '@ant-design/icons';
+import { SearchOutlined } from '@ant-design/icons';
 import { useAuthHeader } from 'react-auth-kit';
-import { useNavigate } from 'react-router-dom';
 import { Content } from 'antd/es/layout/layout';
-const { Meta } = Card;
 const { Option } = Select;
 
 const QuizHistory: React.FC = () => {
@@ -14,7 +12,7 @@ const QuizHistory: React.FC = () => {
     name: string;
     user: string;
     description?: string;
-    quizCategories: string;
+    quizCategory: string;
   };
   type QuizResults = {
     quiz: Quiz;
@@ -94,7 +92,7 @@ const QuizHistory: React.FC = () => {
     });
   };
   return (
-    <Content>
+    <Content style={{paddingTop:"3rem"}}>
       <div style={{ display: 'flex', marginBottom: '16px' }}>
         <Input
           placeholder="Search..."
@@ -127,20 +125,20 @@ const QuizHistory: React.FC = () => {
         </Button>
       </div>
 
-      <List 
+      <List style={{paddingTop:"20px"}} 
         grid={{ gutter: 16, xs: 1, sm: 1, md: 1, lg: 1, xl: 1, xxl: 1 }}
         dataSource={filteredQuiz}
         bordered
         pagination={{position: 'bottom',align: 'start' ,
           onChange: (page) => setCurrentPage(page),
-          pageSize: 6,
+          pageSize: 7,
         }}
         renderItem={(item: QuizResults, index: number) => (
           <List.Item>
                 <Row style={{border: '1px solid #ccc'}}>
                     <Col xs={{ span: 24 }} lg={{ span: 1, offset: 0 }}>
                     <div style={{ margin: '10px'}}>
-                    {`Nr ${index + 1 + (6 * (currentPage - 1))}`}
+                    {`Nr ${index + 1 + (7 * (currentPage - 1))}`}
                             </div>
                     </Col>
                     <Col xs={{ span: 24 }} lg={{ span: 8, offset: 0 }}>
@@ -155,7 +153,7 @@ const QuizHistory: React.FC = () => {
                     </Col>
                     <Col xs={{ span: 24}} lg={{ span: 8, offset: 0 }}>
                     <div style={{  margin: '10px'}}>
-                     <p>{`Kategorie ${item.quiz.quizCategories} `}</p>
+                     <p>{`Kategorie ${item.quiz.quizCategory} `}</p>
                     </div>
                     </Col>
                     <Col xs={{ span: 24 }} lg={{ span: 6, offset: 0}}>

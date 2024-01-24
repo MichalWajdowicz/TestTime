@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Steps, Button, Checkbox } from 'antd';
+import { Steps, Button, Checkbox, Card, message } from 'antd';
 import { useParams } from 'react-router-dom';
 import { useAuthHeader } from 'react-auth-kit';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { CheckboxValueType } from 'antd/lib/checkbox/Group';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const { Step } = Steps;
 
@@ -52,6 +53,7 @@ const QuizComponent: React.FC = () => {
   const authHeader = useAuthHeader();
   const shouldLog = useRef(true);
   const [quizResultsId, setQuizResultsId] = useState(Number);
+  const navigate = useNavigate();
  
 
   useEffect(() => {
@@ -81,13 +83,19 @@ const QuizComponent: React.FC = () => {
         headers: { Authorization: authHeader() },
       });
       setQuizResultsId(response.data.id);
-    } catch (error) {
-      console.error(error);
+      setHasStarted(true);
+    } catch (err: any) { {
+      if (err.response !== undefined) {
+        for (let [key, value] of Object.entries(err.response.data)) {
+                message.error(`${value}`, 4);
+        }
     }
+    navigate("/dashboard");
   }
+} 
+    };
 
   const handleStartQuiz = () => {
-    setHasStarted(true);
     fetchQuizData();
   };
 
@@ -103,15 +111,15 @@ const QuizComponent: React.FC = () => {
   };
 
   const handleFinishQuiz = () => {
-    // Sprawdź, czy na każde pytanie udzielono odpowiedzi
+    
     const isAnswered = answers.every(answer => answer.length > 0);
 
     if (isAnswered) {
       handleFinishQuiz2();
     } else {
-      // Wyświetl powiadomienie, że należy odpowiedzieć na wszystkie pytania messag antd
-      console.log("Please answer all questions before finishing.");
-      // Możesz również wyświetlić powiadomienie lub podjąć inne działania
+      
+      message.info("Please answer all questions before finishing.",4);
+
     }
   };
 
@@ -134,9 +142,13 @@ const QuizComponent: React.FC = () => {
       );
       setScore(response.data.overall_score);
       setResults(true);
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (err: any) {
+      if (err.response !== undefined) {
+        for (let [key, value] of Object.entries(err.response.data)) {
+                message.error(`${value}`, 4);
+        }
+    }}
+    
 };
 const handleStepClick = (step: number) => {
   setCurrentStep(step);
@@ -152,15 +164,15 @@ const userAnswer = () => {
                   {quizData.questions.map((question, index) => (
                     <div key={index}>
                       <h3>{question.name}</h3>
-                      <p>User's Answer: {answers[index].join(', ')}</p>
+                      <p>Twoje odpowiedzi: {answers[index].join(', ')}</p>
                     </div>
                   ))}
                   {/* Confirm Completion Button */}
                   <Button type="primary" onClick={backToQuiz}>
-                    Back
+                    Powrót
                   </Button>
                   <Button type="primary" onClick={senToBackend}>
-                    Confirm Completion
+                  Potwierdź zakończenie
                   </Button>
       </>
     );
@@ -169,7 +181,7 @@ const userAnswer = () => {
   const userScore = () => {
     return (
       <>
-        <h3>Your score is: {score}</h3>
+        <h3>Twój wynik: {score}</h3>
         <Link to="/dashboard"> <Button type="primary" >
           Przejdz do quizów
         </Button></Link>
@@ -181,73 +193,74 @@ const userAnswer = () => {
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
       <div>
         {!hasStarted ? (
-          <Button type="primary" onClick={handleStartQuiz}>
-            Start
-          </Button>
+          <Card title={quizData.name} style={{ width: 500 }}>
+            <p>{quizData.description}</p>
+            <Button type="primary" onClick={handleStartQuiz}>
+              Rozpocznij quiz
+            </Button>
+          </Card>
         ) : (
-          <>{!quizCompleted &&(
-            <Steps current={currentStep} responsive>
-            {quizData?.questions?.map((question, index) => {
-              const status =
-                index < currentStep
-                  ? answers[index].length > 0
-                    ? 'finish'
-                    : 'error'
-                  : index === currentStep
-                  ? 'process'
-                  : answers[index].length > 0
-                  ? 'finish'
-                  : 'wait';
+          <>
+            {!quizCompleted && (
+              <Card title={`Question ${currentStep + 1}`} style={{ width: 500 }}>
+                <Steps current={currentStep} responsive>
+                  {quizData?.questions?.map((question, index) => {
+                    const status =
+                      index < currentStep
+                        ? answers[index].length > 0
+                          ? 'finish'
+                          : 'error'
+                        : index === currentStep
+                        ? 'process'
+                        : answers[index].length > 0
+                        ? 'finish'
+                        : 'wait';
 
-              return (
-                <Step
-                  key={index}
-                  status={status}
-                  onClick={() => handleStepClick(index)}
-                  // Dodaj tę linię do obsługi kliknięcia na krok
-                />
-              );
-            })}
-          </Steps>)}
-            <div>
-              {quizCompleted ? 
-              (
-                results ? (
-                userScore()
-                ) :
-                userAnswer()
-              ) 
-              : (
-                <>
-                <h3>{quizData?.questions?.[currentStep]?.name}</h3>
-                <Checkbox.Group onChange={handleAnswerChange} value={answers[currentStep]}>
-                  {quizData?.questions?.[currentStep]?.answers?.map((answer, index) => (
-
-                    <Checkbox key={`${currentStep}+${index}`} value={answer.answer}>
-                      {answer.answer}
-                    </Checkbox>
-
-                  ))}
-                </Checkbox.Group>
-                <div style={{ marginTop: '24px' }}>
-                  {currentStep > 0 && (
-                    <Button style={{ marginRight: '8px' }} onClick={() => setCurrentStep((prevStep) => prevStep - 1)}>
-                      Previous
-                    </Button>
-                  )}
-                  {currentStep < quizData.questions.length - 1 ? (
-                    <Button type="primary" onClick={handleNextStep}>
-                      Next
-                    </Button>
-                  ) : (
-                    <Button type="primary" onClick={handleFinishQuiz}>
-                      Finish
-                    </Button>
-                  )}
+                    return (
+                      <Step
+                        key={index}
+                        status={status}
+                        onClick={() => handleStepClick(index)}
+                      />
+                    );
+                  })}
+                </Steps>
+                <div>
+                  <h3>{quizData?.questions?.[currentStep]?.name}</h3>
+                  <Checkbox.Group onChange={handleAnswerChange} value={answers[currentStep]}>
+                    {quizData?.questions?.[currentStep]?.answers?.map((answer, index) => (
+                      <Checkbox key={`${currentStep}+${index}`} value={answer.answer}>
+                        {answer.answer}
+                      </Checkbox>
+                    ))}
+                  </Checkbox.Group>
+                  <div style={{ marginTop: '24px' }}>
+                    {currentStep > 0 && (
+                      <Button
+                        style={{ marginRight: '8px' }}
+                        onClick={() => setCurrentStep((prevStep) => prevStep - 1)}
+                      >
+                        Poprzedni
+                      </Button>
+                    )}
+                    {currentStep < quizData.questions.length - 1 ? (
+                      <Button type="primary" onClick={handleNextStep}>
+                        Następny
+                      </Button>
+                    ) : (
+                      <Button type="primary" onClick={handleFinishQuiz}>
+                        Zakończ
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </>
-              )}
-            </div>
+              </Card>
+            )}
+            {quizCompleted && (
+              <Card title="Wynik" style={{ width: 500 }}>
+                {results ? userScore() : userAnswer()}
+              </Card>
+            )}
           </>
         )}
       </div>

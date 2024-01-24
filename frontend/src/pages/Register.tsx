@@ -1,11 +1,8 @@
-import React, { useState } from 'react';
-import axios from "axios";
-import type { CascaderProps } from 'antd';
-import {
-  Button,
-  Form,
-  Input,
-} from 'antd';
+import React from 'react';
+import axios from 'axios';
+import { Button, Card, Form, Input, Layout, message } from 'antd';
+import { useNavigate } from "react-router-dom";
+const { Content } = Layout;
 
 const formItemLayout = {
   labelCol: {
@@ -33,136 +30,148 @@ const tailFormItemLayout = {
 
 const Register: React.FC = () => {
   const [form] = Form.useForm();
+  const navigate = useNavigate();
   type registerUser = {
     username: string;
     email: string;
     password: string;
     first_name: string;
     last_name: string;
-    
   };
-  let register: registerUser ;
+
+  let register: registerUser;
+
   const onFinish = async (values: any) => {
     register = {
-        username: values.nickname,
-        email: values.email,
-        password: values.password,
-        first_name: values.imie,
-        last_name: values.nazwisko,
-        };
-    console.log('Received values of form: ', register);
+      username: values.nickname,
+      email: values.email,
+      password: values.password,
+      first_name: values.imie,
+      last_name: values.nazwisko,
+    };
 
     try {
-        const response = await axios.post(
-          "http://localhost:8000/auth/register/",
-          register
-        );
-        console.log(response);
-      } catch (err: unknown) {
-        if (axios.isAxiosError(err)) {
-          console.log("Axios error: ", err.response?.data.message);
-        } else {
-          console.log("Error: ", err);
+      const response = await axios.post('http://localhost:8000/auth/register/', register);
+      message.success('Rejestracja przebiegła pomyślnie!', 4);
+      navigate("/login");
+    } catch (err: any) {
+      if (err.response !== undefined) {
+        for (let [key, value] of Object.entries(err.response.data)) {
+                message.error(`${value}`, 4);
         }
-      }
+    }
+    }
   };
 
   return (
-    <Form
-      {...formItemLayout}
-      form={form}
-      name="register"
-      onFinish={onFinish}
-      style={{ maxWidth: 600 }}
-      scrollToFirstError
-    >
-      <Form.Item
-        name="nickname"
-        label="Nickname"
-        tooltip="Podaj nickname?"
-        rules={[{ required: true, message: 'Wprowadź swój nickname!', whitespace: true }]}
-      >
-        <Input />
-      </Form.Item>
+    <Layout style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Content style={{ padding: '50px', maxWidth: '600px', width: '100%' }}>
+        <Card title="Rejstracja">
+          <Form
+            {...formItemLayout}
+            form={form}
+            name="register"
+            onFinish={onFinish}
+            scrollToFirstError
+          >
+            <Form.Item
+              name="nickname"
+              label="Nickname"
+              tooltip="Podaj nickname?"
+              rules={[{ required: true, message: 'Wprowadź swój nickname!', whitespace: true }]}
+            >
+              <Input />
+            </Form.Item>
 
-      <Form.Item
-        name="imie"
-        label="Imie"
-        tooltip="Podaj imie?"
-        rules={[{ required: true, message: 'Wprowadź swój imie!', whitespace: true }]}
-      >
-        <Input />
-      </Form.Item>
+            <Form.Item
+              name="imie"
+              label="Imie"
+              tooltip="Podaj imie?"
+              rules={[
+                { required: true, message: 'Wprowadź swoje imie!' },
+                { pattern: /^[A-Za-z]+$/, message: 'Imie nie może zawierać cyfr!' },
+              ]}
+            >
+              <Input />
+            </Form.Item>
 
-      <Form.Item
-        name="nazwisko"
-        label="Nazwisko"
-        tooltip="Podaj nazwisko?"
-        rules={[{ required: true, message: 'Wprowadź swój nazwisko!', whitespace: true }]}
-      >
-        <Input />
-      </Form.Item>
+            <Form.Item
+              name="nazwisko"
+              label="Nazwisko"
+              tooltip="Podaj nazwisko?"
+              rules={[
+                { required: true, message: 'Wprowadź swoje nazwisko!' },
+                { pattern: /^[A-Za-z]+$/, message: 'Nazwisko nie może zawierać cyfr!' },
+              ]}
+            >
+              <Input />
+            </Form.Item>
 
-      <Form.Item
-        name="email"
-        label="E-mail"
-        rules={[
-          {
-            type: 'email',
-            message: 'Nie poprwany E-mail!',
-          },
-          {
-            required: true,
-            message: 'Podaj swój E-mail!',
-          },
-        ]}
-      >
-        <Input />
-      </Form.Item>
+            <Form.Item
+              name="email"
+              label="E-mail"
+              rules={[
+                {
+                  type: 'email',
+                  message: 'Nie poprawny E-mail!',
+                },
+                {
+                  required: true,
+                  message: 'Podaj swój E-mail!',
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
 
-      <Form.Item
-        name="password"
-        label="Password"
-        rules={[
-          {
-            required: true,
-            message: 'Podaj haso password!',
-          },
-        ]}
-        hasFeedback
-      >
-        <Input.Password />
-      </Form.Item>
+            <Form.Item
+              name="password"
+              label="Password"
+              rules={[
+                { required: true, message: 'Podaj hasło password!' },
+                { min: 8, message: 'Hasło musi mieć co najmniej 8 znaków!' },
+                {
+                  pattern: /^(?=.*[A-Za-z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+                  message: 'Hasło musi zawierać przynajmniej jeden znak specjalny!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input.Password />
+            </Form.Item>
 
-      <Form.Item
-        name="confirm"
-        label="Confirm Password"
-        dependencies={['password']}
-        hasFeedback
-        rules={[
-          {
-            required: true,
-            message: 'potwierdź hasło!',
-          },
-          ({ getFieldValue }) => ({
-            validator(_, value) {
-              if (!value || getFieldValue('password') === value) {
-                return Promise.resolve();
-              }
-              return Promise.reject(new Error('Hasła sa różne!'));
-            },
-          }),
-        ]}
-      >
-        <Input.Password />
-      </Form.Item>
+            <Form.Item
+              name="confirm"
+              label="Confirm Password"
+              dependencies={['password']}
+              hasFeedback
+              rules={[
+                {
+                  required: true,
+                  message: 'Potwierdź hasło!',
+                },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('password') === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('Hasła są różne!'));
+                  },
+                }),
+              ]}
+            >
+              <Input.Password />
+            </Form.Item>
 
-      <Form.Item {...tailFormItemLayout}>
-        <Button type="primary" htmlType="submit" >
-          Register
-        </Button>
-      </Form.Item>
-    </Form>
+            <Form.Item {...tailFormItemLayout}>
+              <Button type="primary" htmlType="submit">
+                Register
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
+      </Content>
+    </Layout>
   );
 };
 
