@@ -105,7 +105,7 @@ const ProfilePage: React.FC = () => {
 
   const fetchUserQuizsData = () => {
     axiosInstance
-      .get('/api/users/userQuizs')
+      .get('/api/users/user-quizs')
       .then((response: AxiosResponse) => {
         setUserCreatedQuizs(response.data);
       })
@@ -118,7 +118,6 @@ const ProfilePage: React.FC = () => {
       .get('/api/users/user-stats')
       .then((response: AxiosResponse) => {
         setCombinedStats(response.data);
-        console.log(response.data)
         
       })
       .catch((error: AxiosError) => {
@@ -220,7 +219,7 @@ const ProfilePage: React.FC = () => {
 
     try {
         const response = await axiosInstance.put(
-          "/api/users/userChangePassword/",
+          "/api/users/user-change-password/",
           password
         );
         console.log(response);

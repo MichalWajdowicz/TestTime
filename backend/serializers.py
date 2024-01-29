@@ -42,7 +42,7 @@ class QuizsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Quizs
-        fields = ['user', 'name', 'questions', 'quizCategory', 'description']
+        fields = ['user', 'name', 'questions', 'quizCategory', 'description', 'duration']
 
     def create(self, validated_data):
         username = validated_data.pop('user')['username']  # Extract the username from the input data
@@ -93,20 +93,26 @@ class QuizsSerializerList(serializers.ModelSerializer):
     class Meta:
         model = Quizs
         fields = ['id','user', 'name', 'quizCategory', 'description']
-
-
-class QuizResultsSerializer(serializers.ModelSerializer):
-    quiz = QuizsSerializerList()
+class AnswersSerializerQuizResults(serializers.ModelSerializer):
     class Meta:
-        model = QuizResults
-        fields = ['quiz', 'score', 'date']
-
+        model = Answers
+        fields = ['answer', 'good_answer']
 class UserAnswersSerializer(serializers.ModelSerializer):
-    answers = AnswersSerializer(many=True)
+    answers = AnswersSerializerQuizResults(many=True)
+    question = serializers.CharField(source='question.name')
 
     class Meta:
         model = UserAnswers
         fields = ['question', 'answers']
+class QuizResultsSerializer(serializers.ModelSerializer):
+    quiz = QuizsSerializerList()
+    userAnswers = UserAnswersSerializer(many=True)
+
+    class Meta:
+        model = QuizResults
+        fields = ['id','quiz', 'score', 'date','userAnswers']
+
+
 
 class QuizResultsStartSerializer(serializers.ModelSerializer):
     class Meta:

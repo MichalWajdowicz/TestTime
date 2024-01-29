@@ -119,7 +119,7 @@ const StartPage: React.FC = () => {
           alignItems: 'center',
           paddingTop: 24,
           margin: 0,
-          minHeight: `calc(89.7vh - ${headerHeight}px)`, // Adjust the calculation based on your needs
+          minHeight: "80vh", // Adjust the calculation based on your needs
           backgroundColor: '#FFFFFF',
         }}
       >
@@ -141,7 +141,7 @@ const StartPage: React.FC = () => {
         </Row>
       </Content>
 
-      <Footer style={{ fontSize: '1em', textAlign: 'center', backgroundColor: '#001529', color: 'white' }}>
+      <Footer style={{ fontSize: '1em', textAlign: 'center', backgroundColor: '#001529', color: 'white', minHeight:"10vh"  }}>
         TestTime ©2024 Created by Michal Wajdowicz
       </Footer>
     </Layout>

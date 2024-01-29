@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Steps, Button, Checkbox, Card, message } from 'antd';
+import { Steps, Button, Checkbox, Card, message, Modal,Row,Col } from 'antd';
 import { useParams } from 'react-router-dom';
 import { useAuthHeader } from 'react-auth-kit';
 import axios, { AxiosError, AxiosResponse } from 'axios';
@@ -29,6 +29,7 @@ type Quiz = {
   description: string;
   quizCategories: Categories[];
   questions: Question[];
+  duration: number;
 };
 
 type QuestioResults = {
@@ -39,7 +40,15 @@ type QuizResults = {
   quizId: number;
   quizResults: QuestioResults[];
 };
-
+type Results = {
+  overall_score: number;
+  questions: {
+    question_text: string;
+    selected_answers: string[];
+    correct_answers: string[];
+    is_correct: boolean;
+  }[];
+};
 const QuizComponent: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -47,14 +56,17 @@ const QuizComponent: React.FC = () => {
   const [quizResults, setQuizResults] = useState<QuizResults>({} as QuizResults);
   const [quizData, setQuizData] = useState<Quiz>({} as Quiz);
   const [quizCompleted, setQuizCompleted] = useState(false);
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState<Results>({} as Results);
   const [results, setResults] = useState(false);
   const { id } = useParams();
   const authHeader = useAuthHeader();
   const shouldLog = useRef(true);
   const [quizResultsId, setQuizResultsId] = useState(Number);
   const navigate = useNavigate();
- 
+  const [countdownStarted, setCountdownStarted] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [timeExpired, setTimeExpired] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (shouldLog.current) {
@@ -74,36 +86,76 @@ const QuizComponent: React.FC = () => {
     }
   }, [id, authHeader]);
 
+  
   const fetchQuizData = async () => {
     let values = {
       quizId: id,
     };
     try {
-      const response = await axios.post(`http://localhost:8000/api/quizResults/`, values, {
+      const response = await axios.post(`http://localhost:8000/api/quiz-results/`, values, {
         headers: { Authorization: authHeader() },
       });
       setQuizResultsId(response.data.id);
-      setHasStarted(true);
-    } catch (err: any) { {
+      setQuizResults({
+        quizId: response.data.id,
+        quizResults: [],
+      });
+      fetchQuizTime(response.data.id);
+    } catch (err: any) {
       if (err.response !== undefined) {
         for (let [key, value] of Object.entries(err.response.data)) {
-                message.error(`${value}`, 4);
+          message.error(`${value}`, 4);
         }
+      }
+      navigate("/dashboard");
     }
-    navigate("/dashboard");
-  }
-} 
-    };
+  };
+
+  const fetchQuizTime = async (timeId: number) => {
+    try {
+      const response = await axios.get(`http://localhost:8000/api/quiz-results/${timeId}/time-remaining/`, {
+        headers: { Authorization: authHeader() },
+      });
+      setTimeRemaining(response.data.timeRemaining);
+    } catch (err: any) {
+      if (err.response !== undefined) {
+        for (let [key, value] of Object.entries(err.response.data)) {
+          message.error(`${value}`, 4);
+        }
+      }
+      navigate("/dashboard");
+    }
+  };
 
   const handleStartQuiz = () => {
     fetchQuizData();
+    setCountdownStarted(true);
+    setHasStarted(true);
   };
 
+  const formatTime = (timeInSeconds: any) => {
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = timeInSeconds % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
 
   const handleAnswerChange = (checkedValues: CheckboxValueType[]) => {
     const newAnswers = [...answers];
     newAnswers[currentStep] = checkedValues.map(String);
     setAnswers(newAnswers);
+
+    setQuizResults((prevResults) => {
+      const updatedResults = {
+        quizId: prevResults.quizId,
+        quizResults: [...prevResults.quizResults],
+      };
+      updatedResults.quizResults[currentStep] = {
+        question: quizData?.questions?.[currentStep]?.name || "",
+        selectedAnswer: checkedValues.map(String),
+      };
+
+      return updatedResults;
+    });
   };
 
   const handleNextStep = () => {
@@ -115,32 +167,20 @@ const QuizComponent: React.FC = () => {
     const isAnswered = answers.every(answer => answer.length > 0);
 
     if (isAnswered) {
-      handleFinishQuiz2();
+      setQuizCompleted(true);
     } else {
       
       message.info("Please answer all questions before finishing.",4);
 
     }
   };
-
-  const handleFinishQuiz2 = () => {
-    setQuizResults({
-      quizId: quizResultsId,
-      quizResults: quizData.questions.map((question, index) => ({
-        question: question.name,
-        selectedAnswer: answers[index],
-      })),
-    });
-    setQuizCompleted(true);
-  };
-
-  const senToBackend = async() => {
+  const checkAnswers = async() => {
        try {
       const response = await axios.post(
-        "http://localhost:8000/api/checkAnswer/",
+        "http://localhost:8000/api/check-answer/",
         quizResults, { headers: { 'Authorization': authHeader() } }
       );
-      setScore(response.data.overall_score);
+      setScore(response.data);
       setResults(true);
     } catch (err: any) {
       if (err.response !== undefined) {
@@ -158,6 +198,27 @@ const backToQuiz = () => {
   setQuizCompleted(false);
 };
 
+useEffect(() => {
+  if (quizData.duration) {
+    setTimeRemaining(quizData.duration * 60);
+  }
+}, [quizData]);
+
+useEffect(() => {
+  if (countdownStarted && timeRemaining > 0) {
+    const intervalId = setInterval(() => {
+      setTimeRemaining((prevTime) => prevTime - 1);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  } else if (timeRemaining <= 0 && hasStarted) {
+    setTimeExpired(true);
+    setResults(true);
+    setQuizCompleted(true);
+    checkAnswers();
+  }
+}, [countdownStarted, timeRemaining, hasStarted]);
+
 const userAnswer = () => {
   return (
       <>
@@ -168,32 +229,66 @@ const userAnswer = () => {
                     </div>
                   ))}
                   {/* Confirm Completion Button */}
-                  <Button type="primary" onClick={backToQuiz}>
+                  <div style={{marginBottom:"10px"}}>
+                  <Button type="primary" style={{width:"auto"}} onClick={backToQuiz}>
                     Powrót
-                  </Button>
-                  <Button type="primary" onClick={senToBackend}>
+                  </Button></div>
+                  <div style={{marginBottom:"10px"}}>
+                  <Button type="primary" style={{width:"auto"}} onClick={checkAnswers}>
                   Potwierdź zakończenie
-                  </Button>
+                  </Button></div>
       </>
     );
+  };
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
+  
+  const handleCancel = () => {
+    setIsModalOpen(false);
   };
 
   const userScore = () => {
     return (
       <>
-        <h3>Twój wynik: {score}</h3>
-        <Link to="/dashboard"> <Button type="primary" >
-          Przejdz do quizów
-        </Button></Link>
+        
+        
+          <h3>Twój wynik: {score.overall_score}</h3>
+          <div style={{marginBottom:"10px"}}>
+            <Link to="/dashboard">
+              
+              <Button type="primary"style={{width:"auto"}} >
+                Przejdź do quizów
+              </Button>
+            </Link></div>
+            <div style={{marginBottom:"10px"}}>
+            <Button type="primary" style={{width:"auto"}}  onClick={showModal}>
+              Sprawdź odpowiedzi
+            </Button>
+        </div>
+        <Modal title="Podsumowanie" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+          {score.questions.map((question, index) => (
+            <div key={index}>
+              <h3>Pytanie: {question.question_text}</h3>
+              <p>Twoje odpowiedzi: {question.selected_answers ? question.selected_answers.join(', ') : 'Brak odpowiedzi'}</p>
+              <p>Prawidłowe odpowiedzi: {question.correct_answers ? question.correct_answers.join(', ') : 'Brak odpowiedzi'}</p>
+              <p>Poprawna odpowiedź: {question.is_correct ? 'Tak' : 'Nie'}</p>
+            </div>
+          ))}
+        </Modal>
       </>
     );
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', }}>
       <div>
         {!hasStarted ? (
-          <Card title={quizData.name} style={{ width: 500 }}>
+          <Card title={quizData.name} style={{ width: "50vw" }}>
             <p>{quizData.description}</p>
             <Button type="primary" onClick={handleStartQuiz}>
               Rozpocznij quiz
@@ -202,7 +297,7 @@ const userAnswer = () => {
         ) : (
           <>
             {!quizCompleted && (
-              <Card title={`Question ${currentStep + 1}`} style={{ width: 500 }}>
+              <Card title={`Pytanie ${currentStep + 1} - ${formatTime(timeRemaining)} minut`} style={{ width: "50vw"}}>
                 <Steps current={currentStep} responsive>
                   {quizData?.questions?.map((question, index) => {
                     const status =
@@ -257,7 +352,7 @@ const userAnswer = () => {
               </Card>
             )}
             {quizCompleted && (
-              <Card title="Wynik" style={{ width: 500 }}>
+              <Card title="Wynik" style={{ width: "auto" }}>
                 {results ? userScore() : userAnswer()}
               </Card>
             )}

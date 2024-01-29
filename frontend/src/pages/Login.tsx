@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button, Card, Form, Input, Layout, Row, Col ,message } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useSignIn } from 'react-auth-kit';
 import axios from 'axios';
@@ -52,23 +53,22 @@ const Login: React.FC = () => {
                 autoComplete="off"
               >
                 <Form.Item
-                  label="Username"
+                  
                   name="username"
                   rules={[{ required: true, message: 'Podaj sowj username' }]}
                   labelCol={{ span: 4 }}  // Center the label
                   wrapperCol={{ span: 20 }}  // Center the input field
                 >
-                  <Input />
+                  <Input  prefix={<UserOutlined />} placeholder="Username"/>
                 </Form.Item>
 
                 <Form.Item
-                  label="Password"
                   name="password"
                   rules={[{ required: true, message: 'Podaj swoje hasło' }]}
                   labelCol={{ span: 4 }}  // Center the label
                   wrapperCol={{ span: 20 }}  // Center the input field
                 >
-                  <Input.Password />
+                  <Input.Password prefix={<LockOutlined/>} placeholder="Password"/> 
                 </Form.Item>
 
                 <Form.Item wrapperCol={{ span: 24 }}>

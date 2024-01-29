@@ -2,6 +2,7 @@
 # Create your views here.
 # views.py
 from rest_framework import generics, status
+from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,9 +11,11 @@ from .models import Quizs, Categories, Answers, Questions, QuizResults, UserAnsw
 from .serializers import QuizsSerializer, QuizsSerializerList, CategorysSerializer, QuizResultsSerializer, \
     QuizResultsStartSerializer, UserDetilSerializer, UserChangePasswordSerializer
 from django.db.models import Q, Count, Avg  # Import Q to handle complex queries
+from django.utils import timezone
+import datetime
 
-
-
+def truncate_microseconds(dt):
+    return dt - datetime.timedelta(microseconds=dt.microsecond)
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetilSerializer
@@ -89,6 +92,16 @@ class QuizRetrieveView(generics.RetrieveAPIView):
     queryset = Quizs.objects.all()
     serializer_class = QuizsSerializer
 
+class QuizResultsDetailView(generics.RetrieveAPIView):
+    queryset = QuizResults.objects.all()
+    serializer_class = QuizResultsSerializer
+
+    def get_object(self):
+        quiz_result = super(QuizResultsDetailView, self).get_object()
+        if quiz_result.user != self.request.user:
+            raise PermissionError('Nie masz uprawnień do wyświetlenia tego wyniku.')
+        return quiz_result
+
 class QuizResultsView(generics.ListCreateAPIView):
     queryset = QuizResults.objects.all()
     serializer_class = QuizResultsSerializer
@@ -122,7 +135,6 @@ class QuizResultsView(generics.ListCreateAPIView):
 
 
         quiz_id = request.data.get('quizId')
-        user = self.request.user
         # Używam filter zamiast get
         quizzes = Quizs.objects.filter(pk=quiz_id)
 
@@ -136,11 +148,13 @@ class QuizResultsView(generics.ListCreateAPIView):
         if QuizResults.objects.filter(user=user, quiz=quiz, isCompleted=True).exists():
             return Response({'detail': 'Rozwiązałeś już ten quiz.'}, status=status.HTTP_400_BAD_REQUEST)
         # Tworzenie wyniku quizu z domyślną punktacją równą 0
-        quiz_result = QuizResults.objects.create(quiz=quiz, user=request.user, score=0)
+        if not QuizResults.objects.filter(user=user, quiz=quiz, isStarted=True).exists():
+            quiz_result = QuizResults.objects.create(quiz=quiz, user=user, score=0, start_time=timezone.now(),isStarted=True)
+        else:
+            quiz_result = QuizResults.objects.get(user=user, quiz=quiz, isStarted=True)
 
         serializer =QuizResultsStartSerializer(quiz_result)
         headers = self.get_success_headers(serializer.data)
-
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class CheckQuizResultsView(APIView):
@@ -153,37 +167,49 @@ class CheckQuizResultsView(APIView):
             return Response({'error': 'QuizResults not found'}, status=status.HTTP_404_NOT_FOUND)
 
         overall_score = 0
+        response_data = {'overall_score': overall_score, 'questions': []}
+
         if quizResults.user != request.user:
             return Response({'error': 'Unauthorized access to quiz results'}, status=status.HTTP_403_FORBIDDEN)
-        # Loop through each result in quizResults
+
         for result in request.data.get('quizResults', []):
             question_text = result.get('question')
             selected_answers = result.get('selectedAnswer', [])
 
-            if not question_text or not selected_answers:
-                return Response({'error': 'Invalid quiz results format'}, status=status.HTTP_400_BAD_REQUEST)
+            if not question_text or selected_answers is None or not selected_answers:
+                response_data['questions'].append({
+                    'question_text': question_text,
+                    'selected_answers': selected_answers,
+                    'correct_answers': [],  # Empty list as no correct answer for this question
+                    'is_correct': False
+                })
+                continue
 
             question = get_object_or_404(Questions, quiz=quizResults.quiz, name=question_text)
             correct_answers = Answers.objects.filter(question=question, good_answer=True).values_list('answer', flat=True)
-
-            # Check if selected answers are correct
             is_correct = all(answer in correct_answers for answer in selected_answers)
 
-            # Save or update UserAnswers for each question
             user_answers, created = UserAnswers.objects.get_or_create(quizResult=quizResults, question=question)
             user_answers.answers.set(Answers.objects.filter(question=question, answer__in=selected_answers))
+            is_all_correct = all(answer in correct_answers for answer in selected_answers)
 
-            # Update overall score
-            if is_correct:
-                overall_score += 1
+            overall_score += 1 if is_correct and is_all_correct else 0
 
-        # Update the overall score for the QuizResults
+            response_data['questions'].append({
+                'question_text': question_text,
+                'selected_answers': selected_answers,
+                'correct_answers': list(correct_answers),
+                'is_correct': is_correct and is_all_correct
+            })
+
         quizResults.score = overall_score
         quizResults.isCompleted = True
         quizResults.save()
 
-        # Return the overall score in the response
-        return Response({'overall_score': overall_score}, status=status.HTTP_200_OK)
+        response_data['overall_score'] = overall_score
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
 
 class CombinedUserStatsView(APIView):
     def get(self, request, format=None):
@@ -273,3 +299,30 @@ class UserChangePasswordView(generics.UpdateAPIView):
             return Response({'detail': 'Hasło zostało zmienione pomyślnie.'}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['GET'])
+def get_time_remaining(request, quiz_result_id):
+    print(quiz_result_id)
+    quiz_result = get_object_or_404(QuizResults, id=quiz_result_id)
+
+    if not quiz_result.isStarted:
+        # Quiz nie zaczął się jeszcze
+        return Response({'timeRemaining': quiz_result.quiz.duration * 60}, status=status.HTTP_200_OK)
+    if quiz_result.isCompleted:
+        # Quiz został już rozwiązany
+        return Response({'timeRemaining': 0}, status=status.HTTP_200_OK)
+    # Sprawdź, czy quiz nie wygasł
+    if quiz_result.start_time + timezone.timedelta(minutes=quiz_result.quiz.duration) < timezone.now():
+        quiz_result.isCompleted = True
+        quiz_result.save()
+        return Response({'timeRemaining': 0}, status=status.HTTP_200_OK)
+
+    current_time = timezone.now()
+    current_time = truncate_microseconds(current_time)
+    print(current_time)
+    elapsed_time = current_time - quiz_result.start_time
+    print(elapsed_time)
+    # Oblicz pozostały czas
+    time_remaining = quiz_result.quiz.duration * 60 - elapsed_time.total_seconds()
+    print(time_remaining / 60)
+
+    return Response({'timeRemaining': time_remaining}, status=status.HTTP_200_OK)

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CloseOutlined } from '@ant-design/icons';
-import { Button, Card, Form, Input, Space, Select, message, Row, Col } from 'antd';
+import { Button, Card, Form, Input, Space, Select, message, Row, Col, InputNumber, } from 'antd';
 import { Checkbox } from 'antd';
 import { useAuthHeader } from 'react-auth-kit';
 import axios, { AxiosError, AxiosResponse } from 'axios';
@@ -39,13 +39,14 @@ const App: React.FC = () => {
     description: string;
     quizCategory: Category;
     questions: Question[];
+    duration: number;
   };
 
   let question: Question;
 
   const fetchCategories = () => {
     axiosInstance
-      .get('/api/listCategory/')
+      .get('/api/categories/')
       .then((response: AxiosResponse) => {
         setCategories(response.data);
       })
@@ -121,6 +122,7 @@ const App: React.FC = () => {
       description: values.description,
       questions: questions,
       quizCategory: values.category,
+      duration: values.time,
     };
 
     try {
@@ -178,6 +180,9 @@ const App: React.FC = () => {
             </Option>
           ))}
               </Select>
+            </Form.Item>
+            <Form.Item label="Czas na quiz" name="time" rules={[{ required: true, message: 'Czas jest wymagany' }]}>
+              <InputNumber min={1} max={120} />
             </Form.Item>
             <Form.List name="Pytania">
               {(fields, { add, remove }) => (

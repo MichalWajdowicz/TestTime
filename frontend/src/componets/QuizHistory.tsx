@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {  Input, Button, Select, List,Row,Col } from 'antd';
+import {  Input, Button, Select, List,Row,Col,Modal } from 'antd';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { SearchOutlined } from '@ant-design/icons';
 import { useAuthHeader } from 'react-auth-kit';
@@ -18,6 +18,13 @@ const QuizHistory: React.FC = () => {
     quiz: Quiz;
     score: number;
     date: string;
+    userAnswers:{
+      question: string;
+      answers: {
+        answer:string
+        good_answer:boolean
+      }[];
+    }[];
   };
   type Category = {
     name: string;
@@ -37,7 +44,7 @@ const QuizHistory: React.FC = () => {
 
   const fetchQuizData = (searchQuery: string, categories: string[], date?: string) => {
     axiosInstance
-      .get('/api/quizResults/', {
+      .get('/api/quiz-results/', {
         params: { searchQuery, categories: categories.join(','), date },
       })
       .then((response: AxiosResponse) => {
@@ -50,7 +57,7 @@ const QuizHistory: React.FC = () => {
 
   const fetchCategories = () => {
     axiosInstance
-      .get('/api/listCategory/')
+      .get('/api/categories/')
       .then((response: AxiosResponse) => {
         setCategories(response.data);
       })
@@ -90,6 +97,15 @@ const QuizHistory: React.FC = () => {
         hour: 'numeric',
         minute: 'numeric',
     });
+  };
+  const [selectedQuiz, setSelectedQuiz] = useState<QuizResults | null>(null);
+
+  const handleQuizDetails = (quiz: QuizResults) => {
+    setSelectedQuiz(quiz);
+  };
+
+  const closeModal = () => {
+    setSelectedQuiz(null);
   };
   return (
     <Content style={{paddingTop:"3rem"}}>
@@ -146,12 +162,12 @@ const QuizHistory: React.FC = () => {
                                 <p>{`Nazwa Quizu ${item.quiz.name}`}</p>
                             </div>
                     </Col>
-                    <Col xs={{ span: 24}} lg={{ span: 1, offset: 0 }}>
+                    <Col xs={{ span: 24}} lg={{ span: 2, offset: 0 }}>
                     <div style={{  margin: '10px'}}>
                                 <p>{`Punkty ${item.score} `}</p>
                             </div>
                     </Col>
-                    <Col xs={{ span: 24}} lg={{ span: 8, offset: 0 }}>
+                    <Col xs={{ span: 24}} lg={{ span: 6, offset: 0 }}>
                     <div style={{  margin: '10px'}}>
                      <p>{`Kategorie ${item.quiz.quizCategory} `}</p>
                     </div>
@@ -161,10 +177,51 @@ const QuizHistory: React.FC = () => {
                                 <p>{`Data: ${formatDateString(item.date)}`}</p>
                             </div>
                     </Col>
+                    <Col xs={{ span: 24 }} lg={{ span: 2, offset: 0 }}>
+                      <div style={{ margin: '10px' }}>
+                        <Button type="primary" onClick={() => handleQuizDetails(item)}>
+                          Szczegóły
+                        </Button>
+                      </div>
+                    </Col>
                 </Row>
           </List.Item>
         )}
       />
+<Modal
+  title="Szczegóły Quizu"
+  open={!!selectedQuiz}
+  onCancel={closeModal}
+  footer={null}
+>
+  {selectedQuiz && (
+    <>
+      <p>Nazwa Quizu: {selectedQuiz.quiz.name}</p>
+      <p>Opis: {selectedQuiz.quiz.description}</p>
+      <p>Kategoria: {selectedQuiz.quiz.quizCategory}</p>
+      <p>Data: {formatDateString(selectedQuiz.date)}</p>
+      <p>Wynik: {selectedQuiz.score}</p>
+      <p>Odpowiedzi:</p>
+      <List
+        dataSource={selectedQuiz.userAnswers}
+        renderItem={(item) => (
+          <List.Item>
+            <p>Pytanie: {item.question}</p>
+            <p>
+              Odpowiedzi:{' '}
+              {item.answers.map((answer, index) => (
+                <span key={index} style={{ color: answer.good_answer ? 'green' : 'red' }}>
+                  {answer.answer}
+                  {index < item.answers.length - 1 ? '; ' : ''}
+                </span>
+              ))}
+            </p>
+          </List.Item>
+        )}
+      />
+    </>
+  )}
+</Modal>
     </Content>
   );
 };

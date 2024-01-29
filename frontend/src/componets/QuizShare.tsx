@@ -66,7 +66,7 @@ const App: React.FC = () => {
 
   const fetchCategories = () => {
     axiosInstance
-      .get('/api/listCategory/')
+      .get('/api/categories/')
       .then((response: AxiosResponse) => {
         setCategories(response.data);
       })
