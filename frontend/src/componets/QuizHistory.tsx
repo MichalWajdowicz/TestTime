@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {  Input, Button, Select, List,Row,Col,Modal } from 'antd';
+import {  Input, Button, Select, List,Row,Col,Modal,Table } from 'antd';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { SearchOutlined } from '@ant-design/icons';
 import { useAuthHeader } from 'react-auth-kit';
@@ -107,6 +107,42 @@ const QuizHistory: React.FC = () => {
   const closeModal = () => {
     setSelectedQuiz(null);
   };
+  const columns = [
+    {
+      title: 'Nr',
+      dataIndex: 'key',
+      render: (text:any, record:any, index:any) => `${index + 1}`,
+    },
+    {
+      title: 'Nazwa Quizu',
+      dataIndex: 'quiz',
+      render: (quiz: Quiz) => quiz.name,
+    },
+    {
+      title: 'Punkty',
+      dataIndex: 'score',
+    },
+    {
+      title: 'Kategorie',
+      dataIndex: 'quiz',
+      render: (quiz: Quiz) => quiz.quizCategory,
+    },
+    {
+      title: 'Data',
+      dataIndex: 'date',
+      render: (date: string) => new Date(date).toLocaleDateString('pl-PL'),
+    },
+    {
+      title: 'Akcja',
+      key: 'action',
+      render: (_:any, record:any) => (
+        <Button type="primary" onClick={() => setSelectedQuiz(record)}>
+          Szczegóły
+        </Button>
+      ),
+    },
+  ];
+  
   return (
     <Content style={{paddingTop:"3rem"}}>
       <div style={{ display: 'flex', marginBottom: '16px' }}>
@@ -141,52 +177,11 @@ const QuizHistory: React.FC = () => {
         </Button>
       </div>
 
-      <List style={{paddingTop:"20px"}} 
-        grid={{ gutter: 16, xs: 1, sm: 1, md: 1, lg: 1, xl: 1, xxl: 1 }}
-        dataSource={filteredQuiz}
-        bordered
-        pagination={{position: 'bottom',align: 'start' ,
-          onChange: (page) => setCurrentPage(page),
-          pageSize: 7,
-        }}
-        renderItem={(item: QuizResults, index: number) => (
-          <List.Item>
-                <Row style={{border: '1px solid #ccc'}}>
-                    <Col xs={{ span: 24 }} lg={{ span: 1, offset: 0 }}>
-                    <div style={{ margin: '10px'}}>
-                    {`Nr ${index + 1 + (7 * (currentPage - 1))}`}
-                            </div>
-                    </Col>
-                    <Col xs={{ span: 24 }} lg={{ span: 8, offset: 0 }}>
-                    <div style={{  margin: '10px' }}>
-                                <p>{`Nazwa Quizu ${item.quiz.name}`}</p>
-                            </div>
-                    </Col>
-                    <Col xs={{ span: 24}} lg={{ span: 2, offset: 0 }}>
-                    <div style={{  margin: '10px'}}>
-                                <p>{`Punkty ${item.score} `}</p>
-                            </div>
-                    </Col>
-                    <Col xs={{ span: 24}} lg={{ span: 6, offset: 0 }}>
-                    <div style={{  margin: '10px'}}>
-                     <p>{`Kategorie ${item.quiz.quizCategory} `}</p>
-                    </div>
-                    </Col>
-                    <Col xs={{ span: 24 }} lg={{ span: 6, offset: 0}}>
-                    <div style={{ margin: '10px'}}>
-                                <p>{`Data: ${formatDateString(item.date)}`}</p>
-                            </div>
-                    </Col>
-                    <Col xs={{ span: 24 }} lg={{ span: 2, offset: 0 }}>
-                      <div style={{ margin: '10px' }}>
-                        <Button type="primary" onClick={() => handleQuizDetails(item)}>
-                          Szczegóły
-                        </Button>
-                      </div>
-                    </Col>
-                </Row>
-          </List.Item>
-        )}
+            <Table
+        columns={columns}
+        dataSource={filteredQuiz.map((quiz, index) => ({ ...quiz, key: index }))}
+        pagination={{ pageSize: 7 }}
+        scroll={{ x: 400 }}
       />
 <Modal
   title="Szczegóły Quizu"

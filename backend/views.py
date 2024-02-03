@@ -7,11 +7,12 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from .models import Quizs, Categories, Answers, Questions, QuizResults, UserAnswers
+from .models import Quizs, Categories, Answers, Questions, QuizResults, UserAnswers, QuizLobby
 from .serializers import QuizsSerializer, QuizsSerializerList, CategorysSerializer, QuizResultsSerializer, \
-    QuizResultsStartSerializer, UserDetilSerializer, UserChangePasswordSerializer
-from django.db.models import Q, Count, Avg  # Import Q to handle complex queries
+    QuizResultsStartSerializer, UserDetilSerializer, UserChangePasswordSerializer, QuizLobbySerializer, QuizLobbySerializerList
+from django.db.models import Q, Count, Avg, F  # Import Q to handle complex queries
 from django.utils import timezone
+from django.contrib.auth.hashers import make_password, check_password
 import datetime
 
 def truncate_microseconds(dt):
@@ -326,3 +327,76 @@ def get_time_remaining(request, quiz_result_id):
     print(time_remaining / 60)
 
     return Response({'timeRemaining': time_remaining}, status=status.HTTP_200_OK)
+
+class QuizLobbyView(generics.ListCreateAPIView):
+    queryset = QuizLobby.objects.all()
+    serializer_class = QuizLobbySerializerList
+
+    def get_queryset(self):
+        user = self.request.user
+
+        queryset = QuizLobby.objects.filter(is_active=True).exclude(creator=user).exclude(members=user).exclude(quiz_started=True).exclude(is_completed=True)
+        # Pobierz wartości parametrów zapytania
+        search_query = self.request.query_params.get('searchQuery', '')
+        categories = self.request.query_params.get('categories', '').split(',')
+
+        # Filtruj wyniki na podstawie parametrów zapytania
+        if search_query:
+            queryset = queryset.filter(name__icontains=search_query)
+
+        if categories and categories[0] != '':
+            categories = [category.strip("'") for category in categories]
+            queryset = queryset.filter(quiz__quizCategory__name__in=categories)
+
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        # Zmiana formatu danych przed odpowiedzią
+        data = []
+        for item in serializer.data:
+            creator_data = item['creator']
+            creator_serializer = User.objects.get(id=creator_data).username
+            item['creator'] = creator_serializer
+            data.append(item)
+
+        return Response(data)
+    def create(self, request, *args, **kwargs):
+        serializer_class = QuizLobbySerializer
+        hashed_password = make_password(request.data.get('password'))
+        serializer = serializer_class(data={**self.request.data, 'creator': self.request.user.id, 'password': hashed_password})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        print(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+@api_view(['GET'])
+def check_quiz_lobby_ownership(request, lobby_id):
+    """
+    Check if the authenticated user is the creator of the specified quiz lobby.
+    """
+    user = request.user
+
+    # Get the quiz lobby object or return 404 if not found
+    quiz_lobby = get_object_or_404(QuizLobby, id=lobby_id)
+
+    # Check if the user is the creator of the quiz lobby
+    is_creator = quiz_lobby.creator == user
+
+    # Return the result as a JSON response
+    return Response({'is_creator': is_creator}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def check_quiz_lobby_password(request, lobby_id):
+    quiz_lobby = get_object_or_404(QuizLobby, id=lobby_id)
+    provided_password = request.data.get('password')
+
+    # Check if the provided password matches the hashed password in the quiz lobby
+    is_password_correct = check_password(provided_password, quiz_lobby.password)
+
+    # Return the result as a JSON response
+    return Response({'is_correct': is_password_correct}, status=status.HTTP_200_OK)

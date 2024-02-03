@@ -37,3 +37,19 @@ class UserAnswers(models.Model):
     quizResult = models.ForeignKey(QuizResults, on_delete=models.CASCADE, related_name='userAnswers')
     question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='userAnswers')
     answers = models.ManyToManyField(Answers)
+
+class QuizLobby(models.Model):
+    name = models.CharField(max_length=255)
+    capacity = models.PositiveIntegerField(default=4)
+    creator = models.ForeignKey("auth.User", on_delete=models.CASCADE)
+    members = models.ManyToManyField("auth.User", related_name='lobby_members', blank=True)
+    password = models.CharField(max_length=255, blank=True, null=True)
+    questionTime = models.PositiveIntegerField(default=10)
+    is_active = models.BooleanField(default=True)
+    quiz_started = models.BooleanField(default=False)
+    quiz = models.ForeignKey(Quizs, on_delete=models.CASCADE, related_name='quiz')
+    current_question_index = models.IntegerField(default=0)
+    is_completed = models.BooleanField(default=False)
+    def __str__(self):
+        return self.name
+

@@ -2,20 +2,9 @@ import React, { useEffect, useState,useRef } from 'react';
 import { Layout, Card, List, Row, Col, Form, Input, Button, Modal,message } from 'antd';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import {useAuthHeader} from 'react-auth-kit'
-import {
-  Chart as ChartJS,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  Filler,
-  Tooltip,
-  Legend,
-  ArcElement,
-  BarElement,
-} from 'chart.js';
-import { Radar, Pie, Bar } from 'react-chartjs-2';
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const formItemLayout = {
   labelCol: {
@@ -40,19 +29,6 @@ const tailFormItemLayout = {
     },
   },
 };
-ChartJS.register(
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Filler,
-  Tooltip,
-  Legend
-  
-);
 
 const { Header, Content } = Layout;
 
@@ -92,6 +68,8 @@ const ProfilePage: React.FC = () => {
   const [userCreatedQuizs, setUserCreatedQuizs] = useState<Quiz[]>([]);
   const [combinedStats, setCombinedStats] = useState<CombinedStats | null>(null);
   const [form] = Form.useForm();
+  const colors = ['#8884d8', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c', '#d0ed57', '#ffc658'];
+
   const fetchUserData = () => {
     axiosInstance
       .get('/api/users/')
@@ -149,7 +127,6 @@ const ProfilePage: React.FC = () => {
     setIsPasswordModalVisible(false);
     form.resetFields();
   };
-
   
   const data = {
     
@@ -208,10 +185,80 @@ const ProfilePage: React.FC = () => {
       },
     ],
   };
+  const userSkillsData = combinedStats?.user_skills_data.map(item => ({
+    subject: item.category,
+    A: item.avg_score,
+  }));
   
+  const categoryPieData = combinedStats?.category_pie_data.map(item => ({
+    category: item.category,
+    num_quizzes: item.num_quizzes,
+  }));
+  
+  const userComparisonData = combinedStats?.user_comparison_data.map(item => ({
+    category: item.category,
+    avg_score: item.avg_score,
+    avg_category_score: item.avg_category_score,
+  }));
+
+  const RadarChartComponent = ({ data }: { data: any }) => {
+    if (!data || !data.length) {
+      // Jeśli dane są undefined lub puste, nie renderuj wykresu
+      return <p>Dane nie są dostępne.</p>;
+    }
+    const maxAvgScore = Math.max(...data.map((item: any) => item.A), 0);
+
+    return (
+      <ResponsiveContainer width="100%" height={300}>
+        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data} margin={{ top: 50, right: 50, bottom: 50, left: 50 }}>
+          <PolarGrid />
+          <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12 }} />
+          <PolarRadiusAxis angle={30} domain={[0, 2]} />
+          <Radar name="Avg Score" dataKey="A" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+        </RadarChart>
+      </ResponsiveContainer>
+    );
+  };
+
+  const PieChartComponent = ({ data }: { data: any }) => {
+    // Sprawdzanie, czy dane są zdefiniowane i niepuste
+    if (!data || data.length === 0) {
+      // Możesz zwrócić pusty komponent lub komunikat o braku danych
+      return <div>Brak danych do wyświetlenia</div>;
+    }
+  
+    // Definiowanie kolorów dla segmentów wykresu kołowego
+    const colors = ['#8884d8', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c', '#d0ed57', '#ffc658'];
+  
+    return (
+      <ResponsiveContainer width="100%" height={300}>
+      <PieChart >
+        <Pie data={data} dataKey="num_quizzes" nameKey="category" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
+          {data.map((entry:any, index:any) => (
+            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+          ))}
+        </Pie>
+        <Tooltip />
+        <Legend />
+      </PieChart>
+      </ResponsiveContainer>
+    );
+  };
+  const BarChartComponent = ({ data }: { data: any }) => (
+    <ResponsiveContainer width="100%" height={300}>
+    <BarChart width={600} height={300} data={data}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="category" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Bar name="Twoja Średnia" dataKey="avg_score" fill="#8884d8" />
+      <Bar name="Średnia kategorii" dataKey="avg_category_score" fill="#82ca9d"  />
+    </BarChart>
+    </ResponsiveContainer>
+  );
   let password: passwordChange;
   const onPasswordChange = async (values: any) => {
-    console.log(values)
     password={
       oldPassword: values.oldPassword,
       newPassword: values.newPassword,
@@ -222,7 +269,8 @@ const ProfilePage: React.FC = () => {
           "/api/users/user-change-password/",
           password
         );
-        console.log(response);
+        message.success(response.data, 4);
+        form.resetFields();
       } catch (err: any) {
         if (err.response !== undefined) {
           for (let [key, value] of Object.entries(err.response.data)) {
@@ -344,19 +392,20 @@ const ProfilePage: React.FC = () => {
                     <Content style={{ margin: '16px' }}>
                     <Row gutter={16}>
                         <Col style={{paddingBottom:"0.5rem"}} xs={24} sm={24} md={12} lg={8} xl={8}>
+                          
                             <Card title=" Średni wynik w danej kategori">
-                            <Radar data={data} style={{maxHeight:"20rem"}}  options={{ responsive: true}} />
+                            <RadarChartComponent data={userSkillsData} />
                             </Card>
                         </Col>
                         <Col style={{paddingBottom:"0.5rem"}} xs={24} sm={24} md={12} lg={8} xl={8}>
                             <Card title="Ilość rozwiązanych quizow z kategori" >
-                            <Pie data={dataPie} style={{maxHeight:"20rem"}} options={{ responsive: true}} />
+                            <PieChartComponent data={categoryPieData} />
 
                             </Card>
                         </Col>
                         <Col style={{paddingBottom:"0.5rem"}} xs={24} sm={24} md={12} lg={8} xl={8}>
                             <Card title="Porównanie średni wyników z kategori">
-                            <Bar data={dataBar} style={{maxHeight:"20rem"}} options={{ responsive: true}} />
+                            <BarChartComponent data={userComparisonData} />
                             </Card>
                         </Col>
                     </Row>

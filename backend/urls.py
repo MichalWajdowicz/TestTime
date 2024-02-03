@@ -12,5 +12,7 @@ urlpatterns = [
     path('quiz-results/<int:quiz_result_id>/time-remaining/', views.get_time_remaining, name='get_time_remaining'),
     path('users/user-stats/', views.CombinedUserStatsView.as_view(), name='CombinedUserStatsView'),
     path('users/user-change-password/', views.UserChangePasswordView.as_view(), name='UserChangePasswordView'),
-
+    path('lobby/', views.QuizLobbyView.as_view(), name='LobbyView'),
+    path('lobby/check_quiz_lobby_ownership/<int:lobby_id>/', views.check_quiz_lobby_ownership, name='check_ownership'),
+    path('lobby/check_quiz_lobby_password/<int:lobby_id>/', views.check_quiz_lobby_password, name='check_password'),
 ]

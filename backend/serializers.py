@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Quizs, Questions, Answers, Categories, QuizResults, UserAnswers
+from .models import Quizs, Questions, Answers, Categories, QuizResults, UserAnswers, QuizLobby
 from django.contrib.auth.models import User
 
 class AnswersSerializer(serializers.ModelSerializer):
@@ -139,3 +139,15 @@ class UserChangePasswordSerializer(serializers.Serializer):
         if not any(char in data['newPassword'] for char in "!@#$%^&*()_-+=<>?/[]{}|"):
             raise serializers.ValidationError("Hasło musi zawierać co najmniej jeden znak specjalny.")
         return data
+class QuizLobbySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = QuizLobby
+        fields = ['id','name', 'creator', 'quiz', 'questionTime','password']
+
+
+class QuizLobbySerializerList(serializers.ModelSerializer):
+    quiz = QuizsSerializerList()
+    class Meta:
+        model = QuizLobby
+        fields = ['id','name', 'creator', 'quiz', 'questionTime']
