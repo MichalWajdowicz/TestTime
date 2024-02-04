@@ -28,7 +28,7 @@ const StartPage: React.FC = () => {
     navigate('/');
   };
   const login = () => {
-    navigate('/login');
+    navigate('/siteAuth');
   };
   const register = () => {
     navigate('/register');

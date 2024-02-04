@@ -53,7 +53,7 @@ const Register: React.FC = () => {
     try {
       const response = await axios.post('http://localhost:8000/auth/register/', register);
       message.success('Rejestracja przebiegła pomyślnie!', 4);
-      navigate("/login");
+      navigate("/siteAuth");
     } catch (err: any) {
       if (err.response !== undefined) {
         for (let [key, value] of Object.entries(err.response.data)) {

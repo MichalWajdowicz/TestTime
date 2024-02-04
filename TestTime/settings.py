@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'backend.apps.BackendConfig',
-    'login.apps.LoginConfig',
+    'siteAuth.apps.LoginConfig',
 
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
@@ -148,11 +148,11 @@ WSGI_APPLICATION = 'TestTime.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'inz',
+        'NAME': 'TestTime',
         'USER': 'root',
         'PASSWORD': '',
-        'HOST': 'localhost',  # Możesz zmienić na adres hosta MySQL
-        'PORT': '',           # Opcjonalnie: port, na którym działa MySQL
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 

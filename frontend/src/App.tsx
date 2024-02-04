@@ -48,7 +48,7 @@ function App() {
               })()}
 
               <Route path={'/dashboard'} element={
-                <RequireAuth loginPath={'/login'}>
+                <RequireAuth loginPath={'/siteAuth'}>
                   <Dashboard/>
                 </RequireAuth> }>
                 <Route path="quizAdd" element={<QuizAdd/>}></Route>
@@ -59,11 +59,11 @@ function App() {
               </Route>
 
         <Route path="/quiz/:id" element={
-                <RequireAuth loginPath={'/login'}>
+                <RequireAuth loginPath={'/siteAuth'}>
                  <Quiz/>
                 </RequireAuth> }></Route>
           <Route path="/lobby/:id" element={
-                <RequireAuth loginPath={'/login'}>
+                <RequireAuth loginPath={'/siteAuth'}>
                  <Lobby/>
                 </RequireAuth> }></Route>
 

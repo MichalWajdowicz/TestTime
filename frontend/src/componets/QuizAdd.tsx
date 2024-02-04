@@ -170,7 +170,7 @@ const App: React.FC = () => {
             </Form.Item>
             <Form.Item
               name="category"
-              label="Select"
+              label="Kategoria"
               rules={[{ required: true, message: 'Proszę wybrać kategorię' }]}
             >
               <Select placeholder="Wybierz kategorie">
