@@ -1,7 +1,7 @@
 import React, { useEffect, useState,useRef } from 'react';
 import { Card, List, Input, Button, Select, Modal, Form, message } from 'antd';
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import { PlayCircleOutlined, InfoCircleOutlined, SearchOutlined } from '@ant-design/icons';
+import { PlayCircleOutlined, InfoCircleOutlined, SearchOutlined,PlusCircleOutlined  } from '@ant-design/icons';
 import {useAuthHeader} from 'react-auth-kit'
 import { useNavigate  } from 'react-router-dom';
 import { Content } from 'antd/es/layout/layout';
@@ -29,6 +29,7 @@ const App: React.FC = () => {
   const authHeader = useAuthHeader();
   const [text, setText] = useState<string | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpenDesc, setIsModalOpenDesc] = useState(false);
   const [filteredQuiz, setFilteredQuiz] = useState<Quiz[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -43,7 +44,7 @@ const App: React.FC = () => {
 
   const showModal = (description:string | undefined) => {
     setText(description);
-    setIsModalOpen(true);
+    setIsModalOpenDesc(true);
   };
 
   const showModalCreateLobby = (id:number) => {
@@ -57,6 +58,13 @@ const App: React.FC = () => {
   
   const handleCancel = () => {
     setIsModalOpen(false);
+  };
+  const handleOkDesc = () => {
+    setIsModalOpenDesc(false);
+  };
+  
+  const handleCancelDesc = () => {
+    setIsModalOpenDesc(false);
   };
 
   const openQuiz = (n:number) => {
@@ -181,11 +189,9 @@ const App: React.FC = () => {
             <Card
               actions={[
                 <InfoCircleOutlined onClick={() => showModal(item.description)} style={{ fontSize: 20 }} />,
-                
+                <PlusCircleOutlined onClick={() => showModalCreateLobby(item.id)} style={{ fontSize: 20 }}  />,
                 <PlayCircleOutlined onClick={() => openQuiz(item.id)} style={{ fontSize: 20 }}  />,
 
-                <PlayCircleOutlined onClick={() => showModalCreateLobby(item.id)} style={{ fontSize: 20 }}  />
-                
               ]}
             >
               <Meta title={item.name} />
@@ -207,7 +213,7 @@ const App: React.FC = () => {
           </List.Item>
         )}
       />
-                    <Modal title="Opis Quizu" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+                    <Modal title="Opis Quizu" open={isModalOpenDesc} onOk={handleOkDesc} onCancel={handleCancelDesc}>
         {text}
         </Modal>
 
@@ -245,7 +251,15 @@ const App: React.FC = () => {
         <Form.Item
         name="lobbyTime"
         tooltip="Podaj czas na pytanie"
-        rules={[{ required: true, message: 'Wprowadź czas na pytanie!', whitespace: false }]}
+        rules={[
+          { required: true, message: 'Wprowadź czas na pytanie!', whitespace: false },
+          {
+            type: 'number',
+            min: 5,
+            max: 30,
+            message: 'Czas na pytanie musi być między 5 a 30.',
+          },
+        ]}
         >
         <Input
         placeholder='Czas na pytanie'

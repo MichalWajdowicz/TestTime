@@ -335,12 +335,21 @@ class QuizLobbyView(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
 
-        queryset = QuizLobby.objects.filter(is_active=True).exclude(creator=user).exclude(members=user).exclude(quiz_started=True).exclude(is_completed=True)
-        # Pobierz wartości parametrów zapytania
+        # Basic filter excluding completed and started lobbies where the user is not a member,
+        # but allowing through any lobbies where the user is the creator.
+        queryset = QuizLobby.objects.filter(
+            Q(is_active=True) |
+            Q(creator=user),
+            ~Q(members=user),
+            is_completed=False,
+            quiz_started=False
+        )
+
+        # Fetch values of query parameters
         search_query = self.request.query_params.get('searchQuery', '')
         categories = self.request.query_params.get('categories', '').split(',')
 
-        # Filtruj wyniki na podstawie parametrów zapytania
+        # Filter results based on query parameters
         if search_query:
             queryset = queryset.filter(name__icontains=search_query)
 

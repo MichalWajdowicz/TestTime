@@ -145,6 +145,21 @@ class QuizLobbySerializer(serializers.ModelSerializer):
         model = QuizLobby
         fields = ['id','name', 'creator', 'quiz', 'questionTime','password']
 
+    def validate(self, data):
+        if data['name'] is None:
+            raise serializers.ValidationError("Nazwa nie może być pusta.")
+        if data['creator'] is None:
+            raise serializers.ValidationError("Twórca nie może być pusty.")
+        if data['quiz'] is None:
+            raise serializers.ValidationError("Quiz nie może być pusty.")
+        if data['questionTime'] is None:
+            raise serializers.ValidationError("Czas na pytanie nie może być pusty.")
+        if data['questionTime'] < 5:
+            raise serializers.ValidationError("Czas na pytanie musi być większy od 5.")
+        if data['questionTime'] > 30:
+            raise serializers.ValidationError("Czas na pytanie musi być mniejszy od 30.")
+
+
 
 class QuizLobbySerializerList(serializers.ModelSerializer):
     quiz = QuizsSerializerList()

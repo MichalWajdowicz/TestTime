@@ -43,7 +43,7 @@ const Register: React.FC = () => {
 
   const onFinish = async (values: any) => {
     register = {
-      username: values.nickname,
+      username: values.username,
       email: values.email,
       password: values.password,
       first_name: values.imie,
@@ -75,10 +75,10 @@ const Register: React.FC = () => {
             scrollToFirstError
           >
             <Form.Item
-              name="nickname"
-              label="Nickname"
-              tooltip="Podaj nickname?"
-              rules={[{ required: true, message: 'Wprowadź swój nickname!', whitespace: true }]}
+              name="username"
+              label="Username"
+              tooltip="Podaj username?"
+              rules={[{ required: true, message: 'Wprowadź swój username!', whitespace: true }]}
             >
               <Input />
             </Form.Item>
@@ -126,7 +126,7 @@ const Register: React.FC = () => {
 
             <Form.Item
               name="password"
-              label="Password"
+              label="Hasło"
               rules={[
                 { required: true, message: 'Podaj hasło password!' },
                 { min: 8, message: 'Hasło musi mieć co najmniej 8 znaków!' },
@@ -142,7 +142,7 @@ const Register: React.FC = () => {
 
             <Form.Item
               name="confirm"
-              label="Confirm Password"
+              label="Potwierdź hasło"
               dependencies={['password']}
               hasFeedback
               rules={[
@@ -165,7 +165,7 @@ const Register: React.FC = () => {
 
             <Form.Item {...tailFormItemLayout}>
               <Button type="primary" htmlType="submit">
-                Register
+                Zarejestruj
               </Button>
             </Form.Item>
           </Form>

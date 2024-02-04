@@ -138,6 +138,7 @@ const App: React.FC = () => {
       
 
       socketRef.current.onclose = () => {
+        window.removeEventListener('beforeunload', cleanup);
       };
 
       socketRef.current.onerror = (error) => {
