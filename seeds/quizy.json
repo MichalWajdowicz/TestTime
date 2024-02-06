@@ -1,0 +1,438 @@
+[{
+    "model": "backend.quizs",
+    "pk": 1,
+    "fields": {
+      "name": "Zaawansowany Quiz Informatyczny",
+      "description": "Pytania dotyczące programowania i technologii",
+      "user": 1,
+      "quizCategory": 1,
+      "duration": 30
+    }
+  },
+  {
+    "model": "backend.questions",
+    "pk": 1,
+    "fields": {
+      "quiz": 1,
+      "name": "Jakie języki programowania są obiektowe?"
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 1,
+    "fields": {
+      "question": 1,
+      "answer": "Java",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 2,
+    "fields": {
+      "question": 1,
+      "answer": "C",
+      "good_answer": false
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 3,
+    "fields": {
+      "question": 1,
+      "answer": "Python",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 4,
+    "fields": {
+      "question": 1,
+      "answer": "JavaScript",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.questions",
+    "pk": 2,
+    "fields": {
+      "quiz": 1,
+      "name": "Co to jest HTTP?"
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 5,
+    "fields": {
+      "question": 2,
+      "answer": "Protokół przesyłania hipertekstu",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 6,
+    "fields": {
+      "question": 2,
+      "answer": "Język programowania",
+      "good_answer": false
+    }
+  },
+  {
+    "model": "backend.questions",
+    "pk": 3,
+    "fields": {
+      "quiz": 1,
+      "name": "Które z poniższych są bazami danych NoSQL?"
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 7,
+    "fields": {
+      "question": 3,
+      "answer": "MongoDB",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 8,
+    "fields": {
+      "question": 3,
+      "answer": "Redis",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 9,
+    "fields": {
+      "question": 3,
+      "answer": "MySQL",
+      "good_answer": false
+    }
+  },
+    {
+        "model": "backend.answers",
+        "pk": 10,
+        "fields": {
+        "question": 3,
+        "answer": "PostgreSQL",
+        "good_answer": false
+        }
+    },
+    {
+        "model": "backend.questions",
+        "pk": 4,
+        "fields": {
+        "quiz": 1,
+        "name": "Co to jest Docker?"
+        }
+    },
+    {
+        "model": "backend.answers",
+        "pk": 11,
+        "fields": {
+        "question": 4,
+        "answer": "Narzędzie do zarządzania kontenerami",
+        "good_answer": true
+        }
+    },
+    {
+        "model": "backend.answers",
+        "pk": 12,
+        "fields": {
+        "question": 4,
+        "answer": "System operacyjny",
+        "good_answer": false
+        }
+    },
+    {
+        "model": "backend.answers",
+        "pk": 13,
+        "fields": {
+        "question": 4,
+        "answer": "Framework do tworzenia aplikacji webowych",
+        "good_answer": false
+        }
+    },
+    {
+        "model": "backend.questions",
+        "pk": 5,
+        "fields": {
+        "quiz": 1,
+        "name": "Co to jest REST?"
+        }
+    },
+    {
+        "model": "backend.answers",
+        "pk": 14,
+        "fields": {
+        "question": 5,
+        "answer": "Architektura do tworzenia aplikacji webowych",
+        "good_answer": true
+        }
+    },
+    {
+        "model": "backend.answers",
+        "pk": 15,
+        "fields": {
+        "question": 5,
+        "answer": "Protokół przesyłania hipertekstu",
+        "good_answer": false
+        }
+    },
+    {
+        "model": "backend.answers",
+        "pk": 16,
+        "fields": {
+        "question": 5,
+        "answer": "Framework do tworzenia aplikacji webowych",
+        "good_answer": false
+        }
+    },
+  {
+    "model": "backend.quizs",
+    "pk": 2,
+    "fields": {
+      "name": "Matematyka dla Zaawansowanych",
+      "description": "Zagadnienia z algebry i geometrii",
+      "user": 2,
+      "quizCategory": 2,
+      "duration": 25
+    }
+},
+    {
+    "model": "backend.questions",
+    "pk": 6,
+    "fields": {
+      "quiz": 2,
+      "name": "Co to jest pochodna funkcji w punkcie?"
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 17,
+    "fields": {
+      "question": 6,
+      "answer": "Miara szybkości zmian wartości funkcji względem zmiany jej argumentu",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 18,
+    "fields": {
+      "question": 6,
+      "answer": "Granica ciągu różnicowego",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 19,
+    "fields": {
+      "question": 6,
+      "answer": "Stała funkcji",
+      "good_answer": false
+    }
+  },
+  {
+    "model": "backend.questions",
+    "pk": 7,
+    "fields": {
+      "quiz": 2,
+      "name": "Ile wynosi suma kątów w trójkącie?"
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 20,
+    "fields": {
+      "question": 7,
+      "answer": "180 stopni",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 21,
+    "fields": {
+      "question": 7,
+      "answer": "90 stopni",
+      "good_answer": false
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 22,
+    "fields": {
+      "question": 7,
+      "answer": "360 stopni",
+      "good_answer": false
+    }
+  },
+  {
+    "model": "backend.questions",
+    "pk": 8,
+    "fields": {
+      "quiz": 2,
+      "name": "Jaka jest definicja liczby pierwszej?"
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 23,
+    "fields": {
+      "question": 8,
+      "answer": "Liczba naturalna większa od 1, mająca dokładnie dwa dzielniki",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 24,
+    "fields": {
+      "question": 8,
+      "answer": "Liczba podzielna przez siebie i 1",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 25,
+    "fields": {
+      "question": 8,
+      "answer": "Liczba parzysta większa od 2",
+      "good_answer": false
+    }
+  },
+   {
+    "model": "backend.quizs",
+    "pk": 3,
+    "fields": {
+      "name": "Podstawy Fizyki",
+      "description": "Quiz z pytaniami z zakresu fizyki",
+      "user": 3,
+      "quizCategory": 3,
+      "duration": 15
+    }
+  },
+  {
+    "model": "backend.questions",
+    "pk": 9,
+    "fields": {
+      "quiz": 3,
+      "name": "Co to jest prędkość światła?"
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 26,
+    "fields": {
+      "question": 9,
+      "answer": "Ok. 299 792 km/s",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 27,
+    "fields": {
+      "question": 9,
+      "answer": "Ok. 150 000 km/s",
+      "good_answer": false
+    }
+  },
+  {
+    "model": "backend.questions",
+    "pk": 10,
+    "fields": {
+      "quiz": 3,
+      "name": "Jednostka mocy w układzie SI to:"
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 28,
+    "fields": {
+      "question": 10,
+      "answer": "Watt",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 29,
+    "fields": {
+      "question": 10,
+      "answer": "Joule",
+      "good_answer": false
+    }
+  },
+  {
+    "model": "backend.quizs",
+    "pk": 4,
+    "fields": {
+      "name": "Odkrycia Geograficzne",
+      "description": "Quiz dotyczący odkryć geograficznych",
+      "user": 1,
+      "quizCategory": 7,
+      "duration": 20
+    }
+  },
+  {
+    "model": "backend.questions",
+    "pk": 11,
+    "fields": {
+      "quiz": 4,
+      "name": "Kto odkrył Amerykę?"
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 30,
+    "fields": {
+      "question": 11,
+      "answer": "Krzysztof Kolumb",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 31,
+    "fields": {
+      "question": 11,
+      "answer": "Vasco da Gama",
+      "good_answer": false
+    }
+  },
+  {
+    "model": "backend.questions",
+    "pk": 12,
+    "fields": {
+      "quiz": 4,
+      "name": "Który kontynent został odkryty jako ostatni przez Europejczyków?"
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 32,
+    "fields": {
+      "question": 12,
+      "answer": "Antarktyda",
+      "good_answer": true
+    }
+  },
+  {
+    "model": "backend.answers",
+    "pk": 33,
+    "fields": {
+      "question": 12,
+      "answer": "Australia",
+      "good_answer": false
+    }
+  }
+]

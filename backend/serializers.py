@@ -8,13 +8,11 @@ class AnswersSerializer(serializers.ModelSerializer):
         model = Answers
         fields = ['answer', 'good_answer']
     def to_representation(self, instance):
-        # Ta metoda ustala, jakie dane mają być zwracane podczas operacji GET
         return {
             'answer': instance.answer,
         }
 
     def create(self, validated_data):
-        # Ta metoda ustala, jakie dane mają być zapisywane podczas operacji POST
         return Answers.objects.create(**validated_data)
 
 class QuestionsSerializer(serializers.ModelSerializer):
@@ -45,13 +43,12 @@ class QuizsSerializer(serializers.ModelSerializer):
         fields = ['user', 'name', 'questions', 'quizCategory', 'description', 'duration']
 
     def create(self, validated_data):
-        username = validated_data.pop('user')['username']  # Extract the username from the input data
+        username = validated_data.pop('user')['username']
         user = User.objects.get(username=username)
         questions_data = validated_data.pop('questions')
         category_data = Categories.objects.get(name=validated_data.pop('quizCategory')['name'])
 
         quiz = Quizs.objects.create(user=user, quizCategory=category_data, **validated_data)
-
 
         for question_data in questions_data:
             answers_data = question_data.pop('answers', [])
@@ -59,7 +56,6 @@ class QuizsSerializer(serializers.ModelSerializer):
 
             for answer_data in answers_data:
                 Answers.objects.create(question=question, **answer_data)
-
         return quiz
     def validate(self, data):
 
@@ -159,7 +155,7 @@ class QuizLobbySerializer(serializers.ModelSerializer):
         if data['questionTime'] > 30:
             raise serializers.ValidationError("Czas na pytanie musi być mniejszy od 30.")
 
-
+        return data
 
 class QuizLobbySerializerList(serializers.ModelSerializer):
     quiz = QuizsSerializerList()

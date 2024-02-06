@@ -6,6 +6,7 @@ import { useIsAuthenticated } from 'react-auth-kit';
 import { useSignOut } from 'react-auth-kit';
 import { useNavigate } from 'react-router-dom';
 import useWindowWidth from '../context/screenSize';
+import { MenuOutlined } from '@ant-design/icons';
 const { Header, Footer, Content } = Layout;
 
 const StartPage: React.FC = () => {
@@ -28,7 +29,7 @@ const StartPage: React.FC = () => {
     navigate('/');
   };
   const login = () => {
-    navigate('/siteAuth');
+    navigate('/login');
   };
   const register = () => {
     navigate('/register');
@@ -37,102 +38,77 @@ const StartPage: React.FC = () => {
     navigate('/dashboard');
   };
 
-  const headerHeight = 64; // Adjust this value based on the actual height of your header
-
   return (
-    <Layout>
-      <Header style={{ width: '100%', minHeight: '10vh' }}>
-        <Row gutter={16} justify="space-between" align="middle">
-          <Col xs={12} sm={12}>
-            <Row gutter={12}>
-              <Col style={{ paddingTop: 10 }}>
-                <img src={logo} width={80} alt="Logo" />
-              </Col>
-              {windowWidth > 576 && (
-                <Col>
-                  <p style={{ float: 'left', color: 'white', fontSize: '30px', margin: '0 0 0 0', paddingTop: 16 }}>TestTime</p>
-                </Col>
-              )}
-            </Row>
-          </Col>
-          <Col xs={12} sm={12} style={{ paddingBottom: 20 }}>
-            {windowWidth > 576 ? (
-              <Row justify="end">
-                {isAuthenticated() ? (
-                  <>
-                    <Button type="primary" style={{ marginRight: '16px' }} onClick={logout}>
-                      Wyloguj
-                    </Button>
-                    <Button type="primary" style={{ marginRight: '16px' }} onClick={dashboard}>
-                      Panel
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button type="primary" onClick={login} style={{ marginRight: '16px' }}>
-                      Logowanie
-                    </Button>
-                    <Button type="primary" onClick={register} style={{ marginRight: '16px' }}>
-                      Rejestracja
-                    </Button>
-                  </>
-                )}
-              </Row>
-            ) : (
-              <Row>
-                <Button type="primary" onClick={showDrawer}>
-                  Menu
+    <Layout style={{display:"flex",flexDirection:"column",minHeight:"100vh"}}>
+      <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', height: '64px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '20px' }}>
+        <img src={logo} alt="Logo" style={{ height: '64px' }} />
+        <h1 style={{ marginLeft: '20px', color: '#FFFFFF' }}>TestTime</h1>
+        </div>
+        <div className="header-actions">
+          {/* Display the drawer button on sm and md screens */}
+          <Button className="drawer-button" onClick={showDrawer} style={{ display: windowWidth <= 768 ? 'inline-block' : 'none' }}>
+            <MenuOutlined />
+          </Button>
+          {/* Display the login and register buttons on larger screens */}
+          <div style={{ display: windowWidth > 768 ? 'inline-block' : 'none' }}>
+            {isAuthenticated() ? (
+              <>
+                <Button onClick={logout} style={{ marginRight: '16px' }}>
+                  Wyloguj
                 </Button>
-                <Drawer title="Witamu w TestTime" onClose={onClose} open={open}>
+                <Button onClick={() => navigate('/dashboard')}>
+                  Panel
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={() => navigate('/login')} style={{ marginRight: '16px' }}>
+                  Logowanie
+                </Button>
+                <Button onClick={() => navigate('/register')}>
+                  Rejestracja
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </Header>
+      <Drawer title="Witamu w TestTime" onClose={onClose} open={open}>
                   {isAuthenticated() ? (
                     <div>
+                      <div>
                       <Button type="primary" style={{ marginRight: '16px', marginBottom: 20 }} onClick={() => navigate('/dashboard')}>
                         Panel
-                      </Button>
+                      </Button></div>
+                      <div>
                       <Button type="primary" style={{ marginRight: '16px' }} onClick={logout}>
                         Wyloguj
-                      </Button>
+                      </Button></div>
                     </div>
                   ) : (
-                    <div>
+                    <div><div>
                       <Button type="primary" onClick={login} style={{ marginRight: '16px', marginBottom: 20 }}>
                         Logowanie
-                      </Button>
+                      </Button></div><div>
                       <Button type="primary" onClick={register} style={{ marginRight: '16px' }}>
                         Rejestracja
-                      </Button>
+                      </Button></div>
                     </div>
                   )}
                 </Drawer>
-              </Row>
-            )}
+      <Content style={{ padding: '50px', flex:1, backgroundColor:"#FFFFFF" }}>
+        <Row gutter={16} align="middle" justify="center">
+          <Col xs={24} sm={24} md={12} lg={8}>
+            <img src={homeImg} alt="Quiz" style={{ width: '100%', marginBottom: '20px',borderRadius: '30%' }} />
           </Col>
-        </Row>
-      </Header>
-
-      <Content
-        className="site-layout-background"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingTop: 24,
-          margin: 0,
-          minHeight: "80vh", // Adjust the calculation based on your needs
-          backgroundColor: '#FFFFFF',
-        }}
-      >
-        <Row gutter={16}>
-          <Col xs={24} sm={12}>
-            <img src={homeImg} alt="Opis zdjęcia" style={{ maxWidth: '30vw', borderRadius: '30%' }} />
-          </Col>
-
-          <Col xs={24} sm={12} style={{ paddingTop: 100 }}>
-            <h1 style={{ fontSize: '2.5em', wordBreak: 'break-word' }}>Quizy, Które Rozwijają: Wzmocnij Swoją Wiedzę Z Nami!</h1>
-            <p style={{ fontSize: '1.25em', wordBreak: 'break-word' }}>
-              Każdy quiz to nie tylko zabawa, ale także szansa na zdobycie nowej wiedzy. Przekonaj się, jakie to proste - wystarczy
-              kilka kliknięć, aby rozpocząć swoją przygodę
+          <Col xs={24} sm={24} md={12} lg={16}>
+            <h2 style={{ fontSize: '36px', color: '#000', marginBottom: '20px' }}>
+              Quizy, Które Rozwijają: Wzmocnij Swoją Wiedzę Z Nami!
+            </h2>
+            <p style={{ fontSize: '18px', color: '#000', marginBottom: '20px' }}>
+              Każdy quiz to nie tylko zabawa, ale także szansa na zdobycie nowej wiedzy.
+              Przekonaj się, jakie to proste - wystarczy kilka kliknięć, aby rozpocząć swoją przygodę.
             </p>
             <Button type="primary" size="large" onClick={isAuthenticated() ? dashboard : register}>
               Dołącz do nas

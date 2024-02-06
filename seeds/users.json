@@ -4,7 +4,7 @@
     "pk": 1,
     "fields": {
       "username": "user1",
-      "password": "pbkdf2_sha256$600000$vBQpLGqtAaXJgnl3PqahaT$tjSFSH9RmVef9M7pBUOJJRpUWMf8mjRrqxGb7z6oOqU=",
+      "password": "bcrypt_sha256$$2b$12$5rpXEPNrPwShvSOgKD9o0Ovhrc0uIMdUw3RfhcIB.Unp2xILaTNBC",
       "email": "worker@example.com",
       "first_name": "John",
       "last_name": "Doe",
@@ -17,7 +17,7 @@
     "pk": 2,
     "fields": {
       "username": "user2",
-      "password": "pbkdf2_sha256$600000$vBQpLGqtAaXJgnl3PqahaT$tjSFSH9RmVef9M7pBUOJJRpUWMf8mjRrqxGb7z6oOqU=",
+      "password": "bcrypt_sha256$$2b$12$5rpXEPNrPwShvSOgKD9o0Ovhrc0uIMdUw3RfhcIB.Unp2xILaTNBC",
       "first_name": "Jane",
       "last_name": "Doe",
       "email": "worker2@example.com",
@@ -30,7 +30,7 @@
     "pk": 3,
     "fields": {
       "username": "user3",
-      "password": "pbkdf2_sha256$600000$vBQpLGqtAaXJgnl3PqahaT$tjSFSH9RmVef9M7pBUOJJRpUWMf8mjRrqxGb7z6oOqU=",
+      "password": "bcrypt_sha256$$2b$12$5rpXEPNrPwShvSOgKD9o0Ovhrc0uIMdUw3RfhcIB.Unp2xILaTNBC",
       "email": "worker2@example.com",
       "first_name": "Alex",
       "last_name": "Quinn",

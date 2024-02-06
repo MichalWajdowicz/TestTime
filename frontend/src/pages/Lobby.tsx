@@ -110,12 +110,12 @@ const App: React.FC = () => {
         if (data.type === 'quiz.question') {
           setCurrentQuestion(data.question_data);
           setCountdown(data.question_data.timer || null);
-          setAnswerSubmitted(false); // Reset answer submission status
+          setAnswerSubmitted(false); 
           setQuizAnswersVisible(false);
         } else if (data.type === 'countdown.update') {
           setCountdown(data.seconds_left);
         } else if (data.type === 'answer.received') {
-          setAnswerSubmitted(true); // Mark answer as submitted
+          setAnswerSubmitted(true); 
           message.success('Odpowiedź została przesłana!');
         } else if (data.type === 'quiz.results') {
           // Handle quiz results if needed
@@ -123,7 +123,6 @@ const App: React.FC = () => {
           setResultsVisible(true);
         }
         else if (data.type === 'quiz.answers') {
-          // Handle quiz answers if needed
           setQuizAnswers(data.answers_data
             );
           setQuizAnswersVisible(true);
@@ -133,7 +132,6 @@ const App: React.FC = () => {
           setReceivedLobbyError(true);
           navigate('/dashboard');
         }
-
       };
       
 
@@ -178,6 +176,12 @@ const App: React.FC = () => {
 
   const handleAnswerQuestion = () => {
     if (!answerSubmitted) {
+
+      if (selectedAnswers.length === 0) {
+        message.warning('Proszę wybrać co najmniej jedną odpowiedź przed wysłaniem.');
+        return;
+      }
+
       const data = {
         type: 'user.answer',
         question: currentQuestion?.question_text,
@@ -186,6 +190,7 @@ const App: React.FC = () => {
 
       if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
         socketRef.current.send(JSON.stringify(data));
+        setSelectedAnswers([])
       }
     } else {
       message.warning('Przesłałeś już odpowiedź');

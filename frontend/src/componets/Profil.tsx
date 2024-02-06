@@ -249,9 +249,7 @@ const ProfilePage: React.FC = () => {
     <BarChart width={600} height={300} data={data}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="category" />
-      <YAxis />
-      <Tooltip />
-      <Legend />
+      <YAxis /> <Tooltip /> <Legend />
       <Bar name="Twoja Średnia" dataKey="avg_score" fill="#8884d8" />
       <Bar name="Średnia kategorii" dataKey="avg_category_score" fill="#82ca9d"  />
     </BarChart>
@@ -269,7 +267,7 @@ const ProfilePage: React.FC = () => {
           "/api/users/user-change-password/",
           password
         );
-        message.success(response.data, 4);
+        message.success(response.data.detail, 4);
         form.resetFields();
       } catch (err: any) {
         if (err.response !== undefined) {

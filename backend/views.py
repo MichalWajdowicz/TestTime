@@ -21,7 +21,6 @@ class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetilSerializer
     def get_object(self):
-        # Zwraca obiekt użytkownika, który dokonuje zapytania
         return self.request.user
 
 class UserQuizsCreateView(generics.ListAPIView):
@@ -38,7 +37,6 @@ class UserQuizsCreateView(generics.ListAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
 
-        # Dodaj dodatkowe pola do danych odpowiedzi
         data = serializer.data
         for i, quiz_data in enumerate(data):
             quiz_data['num_attempts'] = queryset[i].num_attempts
@@ -59,9 +57,8 @@ class QuizView(generics.ListCreateAPIView):
     serializer_class = QuizsSerializerList
     def get_queryset(self):
         user = self.request.user
-        queryset = Quizs.objects.exclude(user=user)  # Exclude quizzes created by the authenticated user
+        queryset = Quizs.objects.exclude(user=user)
 
-        # Exclude quizzes that the user has already completed
         completed_quizzes = QuizResults.objects.filter(user=user, isCompleted=True).values_list('quiz', flat=True)
         queryset = queryset.exclude(pk__in=completed_quizzes)
 
@@ -87,7 +84,6 @@ class QuizView(generics.ListCreateAPIView):
         serializer.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
 
 class QuizRetrieveView(generics.RetrieveAPIView):
     queryset = Quizs.objects.all()
@@ -119,12 +115,10 @@ class QuizResultsView(generics.ListCreateAPIView):
         if categories and categories[0] != '':
             categories = [category.strip("'") for category in categories]
             queryset = queryset.filter(quiz__quizCategory__name__in=categories).distinct()
-        # Filtrowanie po dacie - przykład: ?start_date=2023-01-01&end_date=2023-12-31
 
         if date_param:
             queryset = queryset.filter(date__date=date_param)
 
-        # Wyszukiwanie po nazwie quizu
 
         if search_query:
             queryset = queryset.filter(quiz__name__icontains=search_query)
@@ -133,22 +127,15 @@ class QuizResultsView(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
 
         user = self.request.user
-
-
         quiz_id = request.data.get('quizId')
-        # Używam filter zamiast get
         quizzes = Quizs.objects.filter(pk=quiz_id)
-
-        # Sprawdzam, czy co najmniej jeden quiz został znaleziony
         if not quizzes.exists():
             return Response({'detail': 'Nie znaleziono quizu.'}, status=status.HTTP_404_NOT_FOUND)
-
         quiz = quizzes.first()
         if quiz.user == user:
             return Response({'detail': 'Nie możesz rozwiązać własnego quizu.'}, status=status.HTTP_400_BAD_REQUEST)
         if QuizResults.objects.filter(user=user, quiz=quiz, isCompleted=True).exists():
             return Response({'detail': 'Rozwiązałeś już ten quiz.'}, status=status.HTTP_400_BAD_REQUEST)
-        # Tworzenie wyniku quizu z domyślną punktacją równą 0
         if not QuizResults.objects.filter(user=user, quiz=quiz, isStarted=True).exists():
             quiz_result = QuizResults.objects.create(quiz=quiz, user=user, score=0, start_time=timezone.now(),isStarted=True)
         else:
@@ -167,11 +154,11 @@ class CheckQuizResultsView(APIView):
         except QuizResults.DoesNotExist:
             return Response({'error': 'QuizResults not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        overall_score = 0
-        response_data = {'overall_score': overall_score, 'questions': []}
-
         if quizResults.user != request.user:
             return Response({'error': 'Unauthorized access to quiz results'}, status=status.HTTP_403_FORBIDDEN)
+
+        overall_score = 0
+        response_data = {'overall_score': overall_score, 'questions': []}
 
         for result in request.data.get('quizResults', []):
             question_text = result.get('question')
@@ -181,26 +168,26 @@ class CheckQuizResultsView(APIView):
                 response_data['questions'].append({
                     'question_text': question_text,
                     'selected_answers': selected_answers,
-                    'correct_answers': [],  # Empty list as no correct answer for this question
+                    'correct_answers': [],
                     'is_correct': False
                 })
                 continue
 
             question = get_object_or_404(Questions, quiz=quizResults.quiz, name=question_text)
-            correct_answers = Answers.objects.filter(question=question, good_answer=True).values_list('answer', flat=True)
-            is_correct = all(answer in correct_answers for answer in selected_answers)
+            correct_answers = list(Answers.objects.filter(question=question, good_answer=True).values_list('answer', flat=True))
+            is_correct = set(selected_answers) == set(correct_answers)
 
             user_answers, created = UserAnswers.objects.get_or_create(quizResult=quizResults, question=question)
             user_answers.answers.set(Answers.objects.filter(question=question, answer__in=selected_answers))
-            is_all_correct = all(answer in correct_answers for answer in selected_answers)
 
-            overall_score += 1 if is_correct and is_all_correct else 0
+            if is_correct:
+                overall_score += 1
 
             response_data['questions'].append({
                 'question_text': question_text,
                 'selected_answers': selected_answers,
-                'correct_answers': list(correct_answers),
-                'is_correct': is_correct and is_all_correct
+                'correct_answers': correct_answers,
+                'is_correct': is_correct
             })
 
         quizResults.score = overall_score
@@ -211,12 +198,10 @@ class CheckQuizResultsView(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-
 class CombinedUserStatsView(APIView):
     def get(self, request, format=None):
         user = request.user
 
-        # Pobieramy średnie wyniki użytkownika w poszczególnych kategoriach
         user_category_avg_scores = (
             QuizResults.objects
             .filter(user=user)
@@ -228,7 +213,6 @@ class CombinedUserStatsView(APIView):
             .values('quiz__quizCategory__name')
             .annotate(avg_category_score=Avg('score'))
         )
-        # Pobieramy ilość quizów w poszczególnych kategoriach, w których użytkownik brał udział
         user_category_quiz_counts = (
             QuizResults.objects
             .filter(user=user)
@@ -236,7 +220,6 @@ class CombinedUserStatsView(APIView):
             .annotate(num_quizzes=Count('quiz__id', distinct=True))
         )
 
-        # Łączymy obie listy, aby uzyskać pełne informacje o umiejętnościach użytkownika
         user_skills_data = [
             {
                 'category': avg_score['quiz__quizCategory__name'],
@@ -246,7 +229,6 @@ class CombinedUserStatsView(APIView):
             for avg_score, quiz_count in zip(user_category_avg_scores, user_category_quiz_counts)
         ]
 
-        # Pobieramy ilość rozwiązanych quizów w poszczególnych kategoriach przez użytkownika
         category_quiz_counts = (
             QuizResults.objects
             .filter(user=user)
@@ -254,7 +236,6 @@ class CombinedUserStatsView(APIView):
             .annotate(num_quizzes=Count('quiz__id', distinct=True))
         )
 
-        # Przygotowujemy dane w formie odpowiedniej dla wykresu kołowego
         category_pie_data = [
             {'category': quiz_count['quiz__quizCategory__name'], 'num_quizzes': quiz_count['num_quizzes']}
             for quiz_count in category_quiz_counts
@@ -289,11 +270,8 @@ class UserChangePasswordView(generics.UpdateAPIView):
             old_password = serializer.validated_data.get('oldPassword')
             new_password = serializer.validated_data.get('newPassword')
 
-            # Authenticate user with old password
             if not user.check_password(old_password):
                 return Response({'error': 'Stare hasło jest nieprawidłowe.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Change password and save user
             user.set_password(new_password)
             user.save()
 
@@ -306,12 +284,9 @@ def get_time_remaining(request, quiz_result_id):
     quiz_result = get_object_or_404(QuizResults, id=quiz_result_id)
 
     if not quiz_result.isStarted:
-        # Quiz nie zaczął się jeszcze
         return Response({'timeRemaining': quiz_result.quiz.duration * 60}, status=status.HTTP_200_OK)
     if quiz_result.isCompleted:
-        # Quiz został już rozwiązany
         return Response({'timeRemaining': 0}, status=status.HTTP_200_OK)
-    # Sprawdź, czy quiz nie wygasł
     if quiz_result.start_time + timezone.timedelta(minutes=quiz_result.quiz.duration) < timezone.now():
         quiz_result.isCompleted = True
         quiz_result.save()
@@ -322,7 +297,6 @@ def get_time_remaining(request, quiz_result_id):
     print(current_time)
     elapsed_time = current_time - quiz_result.start_time
     print(elapsed_time)
-    # Oblicz pozostały czas
     time_remaining = quiz_result.quiz.duration * 60 - elapsed_time.total_seconds()
     print(time_remaining / 60)
 
@@ -335,8 +309,6 @@ class QuizLobbyView(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
 
-        # Basic filter excluding completed and started lobbies where the user is not a member,
-        # but allowing through any lobbies where the user is the creator.
         queryset = QuizLobby.objects.filter(
             Q(is_active=True) |
             Q(creator=user),
@@ -345,11 +317,9 @@ class QuizLobbyView(generics.ListCreateAPIView):
             quiz_started=False
         )
 
-        # Fetch values of query parameters
         search_query = self.request.query_params.get('searchQuery', '')
         categories = self.request.query_params.get('categories', '').split(',')
 
-        # Filter results based on query parameters
         if search_query:
             queryset = queryset.filter(name__icontains=search_query)
 
@@ -363,7 +333,6 @@ class QuizLobbyView(generics.ListCreateAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
 
-        # Zmiana formatu danych przed odpowiedzią
         data = []
         for item in serializer.data:
             creator_data = item['creator']
@@ -374,8 +343,11 @@ class QuizLobbyView(generics.ListCreateAPIView):
         return Response(data)
     def create(self, request, *args, **kwargs):
         serializer_class = QuizLobbySerializer
-        hashed_password = make_password(request.data.get('password'))
-        serializer = serializer_class(data={**self.request.data, 'creator': self.request.user.id, 'password': hashed_password})
+        if request.data.get('password') is not None:
+            hashed_password = make_password(request.data.get('password'))
+            serializer = serializer_class(data={**self.request.data, 'creator': self.request.user.id, 'password': hashed_password})
+        else:
+            serializer = serializer_class(data={**self.request.data, 'creator': self.request.user.id})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         headers = self.get_success_headers(serializer.data)
@@ -384,28 +356,20 @@ class QuizLobbyView(generics.ListCreateAPIView):
 
 @api_view(['GET'])
 def check_quiz_lobby_ownership(request, lobby_id):
-    """
-    Check if the authenticated user is the creator of the specified quiz lobby.
-    """
+
     user = request.user
-
-    # Get the quiz lobby object or return 404 if not found
     quiz_lobby = get_object_or_404(QuizLobby, id=lobby_id)
-
-    # Check if the user is the creator of the quiz lobby
     is_creator = quiz_lobby.creator == user
 
-    # Return the result as a JSON response
     return Response({'is_creator': is_creator}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 def check_quiz_lobby_password(request, lobby_id):
     quiz_lobby = get_object_or_404(QuizLobby, id=lobby_id)
-    provided_password = request.data.get('password')
-
-    # Check if the provided password matches the hashed password in the quiz lobby
-    is_password_correct = check_password(provided_password, quiz_lobby.password)
-
-    # Return the result as a JSON response
-    return Response({'is_correct': is_password_correct}, status=status.HTTP_200_OK)
+    if quiz_lobby.password is None:
+        return Response({'is_correct': True}, status=status.HTTP_200_OK)
+    else:
+        provided_password = request.data.get('password')
+        is_password_correct = check_password(provided_password, quiz_lobby.password)
+        return Response({'is_correct': is_password_correct}, status=status.HTTP_200_OK)

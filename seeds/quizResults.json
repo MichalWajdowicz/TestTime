@@ -1,0 +1,161 @@
+[
+  {
+    "model": "backend.quizresults",
+    "pk": 1,
+    "fields": {
+      "quiz": 1,
+      "user": 1,
+      "score": 5,
+      "date": "2024-02-10T10:00:00Z",
+      "start_time": "2024-02-10T09:45:00Z",
+      "isStarted": true,
+      "isCompleted": true
+    }
+  },
+  {
+    "model": "backend.quizresults",
+    "pk": 2,
+    "fields": {
+      "quiz": 4,
+      "user": 1,
+      "score": 2,
+      "date": "2024-02-12T10:00:00Z",
+      "start_time": "2024-02-12T09:50:00Z",
+      "isStarted": true,
+      "isCompleted": true
+    }
+  },
+  {
+    "model": "backend.quizresults",
+    "pk": 3,
+    "fields": {
+      "quiz": 2,
+      "user": 2,
+      "score": 2,
+      "date": "2024-02-11T14:00:00Z",
+      "start_time": "2024-02-11T13:45:00Z",
+      "isStarted": true,
+      "isCompleted": true
+    }
+  },
+  {
+    "model": "backend.quizresults",
+    "pk": 4,
+    "fields": {
+      "quiz": 3,
+      "user": 3,
+      "score": 1,
+      "date": "2024-02-13T15:00:00Z",
+      "start_time": "2024-02-13T14:50:00Z",
+      "isStarted": true,
+      "isCompleted": true
+    }
+  },
+  {
+    "model": "backend.useranswers",
+    "pk": 1,
+    "fields": {
+      "quizResult": 1,
+      "question": 1,
+      "answers": [1, 3, 4]
+    }
+  },
+  {
+    "model": "backend.useranswers",
+    "pk": 2,
+    "fields": {
+      "quizResult": 1,
+      "question": 2,
+      "answers": [5]
+    }
+  },{
+    "model": "backend.useranswers",
+    "pk": 3,
+    "fields": {
+      "quizResult": 1,
+      "question": 3,
+      "answers": [7, 8]
+    }
+  },
+  {
+    "model": "backend.useranswers",
+    "pk": 4,
+    "fields": {
+      "quizResult": 1,
+      "question": 4,
+      "answers": [11]
+    }
+  },
+  {
+    "model": "backend.useranswers",
+    "pk": 5,
+    "fields": {
+      "quizResult": 1,
+      "question": 5,
+      "answers": [14]
+    }
+  },
+  {
+    "model": "backend.useranswers",
+    "pk": 6,
+    "fields": {
+      "quizResult": 2,
+      "question": 11,
+      "answers": [30]
+    }
+  },
+  {
+    "model": "backend.useranswers",
+    "pk": 7,
+    "fields": {
+      "quizResult": 2,
+      "question": 12,
+      "answers": [32]
+    }
+  },
+  {
+    "model": "backend.useranswers",
+    "pk": 8,
+    "fields": {
+      "quizResult": 3,
+      "question": 6,
+      "answers": [17,19]
+    }
+  },
+  {
+    "model": "backend.useranswers",
+    "pk": 9,
+    "fields": {
+      "quizResult": 3,
+      "question": 7,
+      "answers": [20]
+    }
+  },
+  {
+    "model": "backend.useranswers",
+    "pk": 10,
+    "fields": {
+      "quizResult": 3,
+      "question": 8,
+      "answers": [23, 24]
+    }
+  },
+  {
+    "model": "backend.useranswers",
+    "pk": 11,
+    "fields": {
+      "quizResult": 4,
+      "question": 9,
+      "answers": [26, 27]
+    }
+  },
+  {
+    "model": "backend.useranswers",
+    "pk": 12,
+    "fields": {
+      "quizResult": 4,
+      "question": 10,
+      "answers": [28]
+    }
+  }
+]

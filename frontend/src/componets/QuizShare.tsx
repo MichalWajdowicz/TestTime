@@ -1,5 +1,5 @@
 import React, { useEffect, useState,useRef } from 'react';
-import { Card, List, Input, Button, Select, Modal, Form, message } from 'antd';
+import { Card, List, Input, Button, Select, Modal, Form, message,InputNumber } from 'antd';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { PlayCircleOutlined, InfoCircleOutlined, SearchOutlined,PlusCircleOutlined  } from '@ant-design/icons';
 import {useAuthHeader} from 'react-auth-kit'
@@ -252,16 +252,16 @@ const App: React.FC = () => {
         name="lobbyTime"
         tooltip="Podaj czas na pytanie"
         rules={[
-          { required: true, message: 'Wprowadź czas na pytanie!', whitespace: false },
+          { required: true, message: 'Wprowadź czas na pytanie!'},
           {
-            type: 'number',
-            min: 5,
-            max: 30,
-            message: 'Czas na pytanie musi być między 5 a 30.',
+            validator: (_, value) =>
+              value && value >= 5 && value <= 30
+                ? Promise.resolve()
+                : Promise.reject(new Error('Czas na pytanie musi być między 5 a 30.')),
           },
         ]}
         >
-        <Input
+        <InputNumber 
         placeholder='Czas na pytanie'
         />
         </Form.Item>

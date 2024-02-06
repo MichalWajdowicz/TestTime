@@ -40,7 +40,6 @@ class UserAnswers(models.Model):
 
 class QuizLobby(models.Model):
     name = models.CharField(max_length=255)
-    capacity = models.PositiveIntegerField(default=4)
     creator = models.ForeignKey("auth.User", on_delete=models.CASCADE)
     members = models.ManyToManyField("auth.User", related_name='lobby_members', blank=True)
     password = models.CharField(max_length=255, blank=True, null=True)
